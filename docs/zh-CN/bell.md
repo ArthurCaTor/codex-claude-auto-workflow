@@ -17,33 +17,52 @@ Codex review  = Codex 是否接受
 messages log  = append-only audit trail
 ```
 
+## 为什么做这次更新
+
+早期 file-heartbeat 版本的信息其实够多，但“轮到谁”的信号不够显式。
+Codex 或 Claude 可能看到了 report、heartbeat、recap 或 log line，却仍然对
+谁该行动产生分歧。
+
+Shared Bell Workflow v2 把系统拆成两条线路：
+
+```text
+Bell lane   = 简单、明确的交接信号
+Detail lane = task 细节、report、review、validation、audit
+```
+
+Bell 线必须保持简单。如果一个 actor 需要另一个 actor 处理，就必须改写
+`BELL.json`，给出明确的 `holder` 和 `status`。不要从自然语言 `summary`、
+Claude report、Codex review 或 terminal recap 推断谁该干活。
+
 ## 系统图
 
 ```text
-              +------------------+
-              |     Arthur       |
-              | starts Claude    |
-              | authorizes gates |
-              +---------+--------+
-                        |
-                        v
-+-----------------------+--------------------------------+
-| docs/operations/agent-coordination/                    |
-|                                                        |
-| auto/BELL.json       -> shared turn signal             |
-| auto/messages.ndjson -> append-only audit truth        |
-| auto/state.json      -> machine projection             |
-| auto/BOARD.md        -> human projection               |
-| inbox/TASK-*.md      -> detailed task instructions     |
-| reports/*.md         -> Claude detailed reports        |
-| codex-reviews/*.md   -> Codex detailed reviews         |
-+-------------+---------------------------+--------------+
-              |                           |
-              v                           v
-      +-------+--------+          +-------+--------+
-      | Claude Code    |          | Codex          |
-      | executes task  |          | reviews/plans  |
-      +----------------+          +----------------+
+                         +------------------+
+                         |      Arthur      |
+                         | owner decisions  |
+                         +---------+--------+
+                                   |
+                         holder=arthur
+                                   |
+                                   v
++-------------------+     +-------------------------------+     +-------------------+
+| Claude Code       |     | shared repo coordination       |     | Codex             |
+| executes one task |<--->|                               |<--->| plans and reviews |
++-------------------+     | Line A: BELL.json             |     +-------------------+
+                          | - holder                      |
+                          | - status                      |
+                          | - task/report pointers        |
+                          | - no detailed reasoning       |
+                          |                               |
+                          | Line B: detailed files        |
+                          | - inbox/TASK-*.md             |
+                          | - reports/*.md                |
+                          | - codex-reviews/*.md          |
+                          | - messages.ndjson audit log   |
+                          | - state.json / BOARD.md       |
+                          +-------------------------------+
+
+规则：agent 可以通过 Line B 交流细节，但只能通过 Line A 判断轮到谁。
 ```
 
 ## Bell 字段
@@ -89,39 +108,72 @@ arthur + ERROR
 ## 数据流
 
 ```text
-Codex 写 task card
-  -> Codex append TASK_READY 到 messages.ndjson
-  -> Codex 写 BELL holder=claude
-  -> Claude 读 BELL，再校验 state/log
-  -> Claude 执行 active task
-  -> Claude 写 report
-  -> Claude append REPORT_READY 到 messages.ndjson
-  -> Claude 写 BELL holder=codex
-  -> Codex 读 BELL、report、diff 和 log
-  -> Codex 写 review
-  -> Codex accept、退回有限 fix、block，或把新任务交给 Claude
+Codex 需要 Claude 干活
+  Detail lane: 写 task card；append TASK_READY audit event
+  Bell lane:   设置 holder=claude, status=READY_FOR_CLAUDE
+  Result:      Claude 干活；Codex 等
+
+Claude 需要 Codex review
+  Detail lane: 写 report；append REPORT_READY audit event
+  Bell lane:   设置 holder=codex, status=READY_FOR_CODEX_REVIEW
+  Result:      Codex review；Claude watch
+
+Codex 需要 Claude 修同一张任务
+  Detail lane: 写 Codex review；append 带 NEEDS_FIX 的 TASK_READY
+  Bell lane:   设置 holder=claude, status=READY_FOR_CLAUDE
+  Result:      Claude 只修 active task 的 allowed files
+
+任一方需要 Arthur
+  Detail lane: 在 report/review/log 写明原因
+  Bell lane:   设置 holder=arthur, status=OWNER_DECISION_REQUIRED
+  Result:      双方停止推进
+
+不要从 summary 文本推断下一个 actor。铃铛必须显式说明。
 ```
 
 ## 状态机
 
 ```text
-holder=claude
-READY_FOR_CLAUDE
-  |
-  v
-holder=claude
-CLAUDE_RUNNING
-  |
-  v
-holder=codex
-READY_FOR_CODEX_REVIEW
-  |
-  +--> ACCEPTED -> OWNER_REVIEW_REQUIRED or next READY_FOR_CLAUDE
-  |
-  +--> NEEDS_FIX -> holder=claude / READY_FOR_CLAUDE same task
-  |
-  +--> BLOCKED or OWNER_DECISION_REQUIRED -> holder=arthur
++----------------------------------+
+| holder=claude                    |
+| status=READY_FOR_CLAUDE          |
+| action: Claude executes task     |
++----------------+-----------------+
+                 |
+                 v
++----------------------------------+
+| holder=claude                    |
+| status=CLAUDE_RUNNING            |
+| action: Claude continues task    |
++----------------+-----------------+
+                 |
+                 v
++----------------------------------+
+| holder=codex                     |
+| status=READY_FOR_CODEX_REVIEW    |
+| action: Codex reviews report     |
++----+---------------+-------------+
+     |               |
+     | accept        | needs same-task fix
+     v               v
++----------------+  +----------------------------------+
+| batch done     |  | holder=claude                    |
+| holder=codex   |  | status=READY_FOR_CLAUDE          |
+| or arthur      |  | action: Claude fixes active task |
+| OWNER_REVIEW   |  +----------------------------------+
++----------------+
+     |
+     | owner-only decision / blocker / error
+     v
++----------------------------------+
+| holder=arthur                    |
+| OWNER_DECISION_REQUIRED/BLOCKED  |
+| action: Arthur decides           |
++----------------------------------+
 ```
+
+状态名可以承载细节，但轮到谁必须保持显式：下一个 actor 看 `holder`，
+不是看 report、review 或 summary 里的自然语言。
 
 ## 两条线路规则
 

@@ -22,6 +22,11 @@ BELL.json holder=codex   -> Codex reviews or prepares the next bounded task
 BELL.json holder=arthur  -> the human owner decides
 ```
 
+This is intentionally simple. Whenever one actor needs another actor to do
+anything, it must hand over the bell with an explicit `holder` and `status`;
+the workflow never infers the next actor from natural-language summaries,
+reports, reviews, or terminal recap text.
+
 The workflow is useful when you want Codex to manage a project and review work,
 while Claude Code performs implementation, documentation, validation, or audit
 tasks in a visible terminal. It keeps the collaboration running automatically

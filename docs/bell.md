@@ -18,33 +18,54 @@ Codex review  = whether Codex accepts it
 messages log  = append-only audit trail
 ```
 
+## Why This Update Exists
+
+Earlier file-heartbeat versions had enough information, but the turn signal was
+too implicit. Codex or Claude could see a report, a heartbeat, a recap, or a log
+line and still disagree about whose turn it was.
+
+Shared Bell Workflow v2 fixes that by separating the system into two lanes:
+
+```text
+Bell lane   = simple explicit handoff
+Detail lane = task details, reports, reviews, validation, audit
+```
+
+The bell lane must stay intentionally simple. If one actor needs another actor
+to act, it must rewrite `BELL.json` with an explicit `holder` and `status`.
+Natural-language `summary`, Claude reports, Codex reviews, and terminal recap
+text must never be used to infer whose turn it is.
+
 ## System Diagram
 
 ```text
-              +------------------+
-              |     Arthur       |
-              | starts Claude    |
-              | authorizes gates |
-              +---------+--------+
-                        |
-                        v
-+-----------------------+--------------------------------+
-| docs/operations/agent-coordination/                    |
-|                                                        |
-| auto/BELL.json       -> shared turn signal             |
-| auto/messages.ndjson -> append-only audit truth        |
-| auto/state.json      -> machine projection             |
-| auto/BOARD.md        -> human projection               |
-| inbox/TASK-*.md      -> detailed task instructions     |
-| reports/*.md         -> Claude detailed reports        |
-| codex-reviews/*.md   -> Codex detailed reviews         |
-+-------------+---------------------------+--------------+
-              |                           |
-              v                           v
-      +-------+--------+          +-------+--------+
-      | Claude Code    |          | Codex          |
-      | executes task  |          | reviews/plans  |
-      +----------------+          +----------------+
+                         +------------------+
+                         |      Arthur      |
+                         | owner decisions  |
+                         +---------+--------+
+                                   |
+                         holder=arthur
+                                   |
+                                   v
++-------------------+     +-------------------------------+     +-------------------+
+| Claude Code       |     | shared repo coordination       |     | Codex             |
+| executes one task |<--->|                               |<--->| plans and reviews |
++-------------------+     | Line A: BELL.json             |     +-------------------+
+                          | - holder                      |
+                          | - status                      |
+                          | - task/report pointers        |
+                          | - no detailed reasoning       |
+                          |                               |
+                          | Line B: detailed files        |
+                          | - inbox/TASK-*.md             |
+                          | - reports/*.md                |
+                          | - codex-reviews/*.md          |
+                          | - messages.ndjson audit log   |
+                          | - state.json / BOARD.md       |
+                          +-------------------------------+
+
+Rule: agents may discuss details through Line B, but they only decide whose
+turn it is from Line A.
 ```
 
 ## Bell Fields
@@ -90,39 +111,72 @@ arthur + ERROR
 ## Data Flow
 
 ```text
-Codex writes task card
-  -> Codex appends TASK_READY to messages.ndjson
-  -> Codex writes BELL holder=claude
-  -> Claude reads BELL, then verifies state/log
-  -> Claude executes active task
-  -> Claude writes report
-  -> Claude appends REPORT_READY to messages.ndjson
-  -> Claude writes BELL holder=codex
-  -> Codex reads BELL, report, diff, and log
-  -> Codex writes review
-  -> Codex accepts, returns bounded fix, blocks, or hands a new task to Claude
+Codex needs Claude to work
+  Detail lane: write task card; append TASK_READY audit event
+  Bell lane:   set holder=claude, status=READY_FOR_CLAUDE
+  Result:      Claude works; Codex waits
+
+Claude needs Codex to review
+  Detail lane: write report; append REPORT_READY audit event
+  Bell lane:   set holder=codex, status=READY_FOR_CODEX_REVIEW
+  Result:      Codex reviews; Claude watches
+
+Codex needs Claude to fix the same task
+  Detail lane: write Codex review; append TASK_READY with NEEDS_FIX
+  Bell lane:   set holder=claude, status=READY_FOR_CLAUDE
+  Result:      Claude fixes only the active task's allowed files
+
+Either agent needs Arthur
+  Detail lane: write the reason in report/review/log
+  Bell lane:   set holder=arthur, status=OWNER_DECISION_REQUIRED
+  Result:      both agents stop advancing
+
+Never infer the next actor from summary text. The bell must say it explicitly.
 ```
 
 ## State Machine
 
 ```text
-holder=claude
-READY_FOR_CLAUDE
-  |
-  v
-holder=claude
-CLAUDE_RUNNING
-  |
-  v
-holder=codex
-READY_FOR_CODEX_REVIEW
-  |
-  +--> ACCEPTED -> OWNER_REVIEW_REQUIRED or next READY_FOR_CLAUDE
-  |
-  +--> NEEDS_FIX -> holder=claude / READY_FOR_CLAUDE same task
-  |
-  +--> BLOCKED or OWNER_DECISION_REQUIRED -> holder=arthur
++----------------------------------+
+| holder=claude                    |
+| status=READY_FOR_CLAUDE          |
+| action: Claude executes task     |
++----------------+-----------------+
+                 |
+                 v
++----------------------------------+
+| holder=claude                    |
+| status=CLAUDE_RUNNING            |
+| action: Claude continues task    |
++----------------+-----------------+
+                 |
+                 v
++----------------------------------+
+| holder=codex                     |
+| status=READY_FOR_CODEX_REVIEW    |
+| action: Codex reviews report     |
++----+---------------+-------------+
+     |               |
+     | accept        | needs same-task fix
+     v               v
++----------------+  +----------------------------------+
+| batch done     |  | holder=claude                    |
+| holder=codex   |  | status=READY_FOR_CLAUDE          |
+| or arthur      |  | action: Claude fixes active task |
+| OWNER_REVIEW   |  +----------------------------------+
++----------------+
+     |
+     | owner-only decision / blocker / error
+     v
++----------------------------------+
+| holder=arthur                    |
+| OWNER_DECISION_REQUIRED/BLOCKED  |
+| action: Arthur decides           |
++----------------------------------+
 ```
+
+State names can carry detailed meaning, but turn ownership must stay explicit:
+the next actor is the `holder`, not the prose in a report, review, or summary.
 
 ## Two-Lane Rule
 

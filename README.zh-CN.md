@@ -21,6 +21,10 @@ BELL.json holder=codex   -> Codex review 或准备下一个有限任务
 BELL.json holder=arthur  -> human owner 决策
 ```
 
+这个设计故意保持简单。只要一个 actor 需要另一个 actor 处理事情，就必须用明确的
+`holder` 和 `status` 交出铃铛；workflow 不从自然语言 summary、report、
+review 或 terminal recap 推断下一步该谁干活。
+
 这个工作流适合这样的场景：你希望 Codex 负责项目管理、任务拆分和验收，同时让 Claude Code 在可见终端里执行实现、文档、验证或审计任务。它可以让有限任务批次自动流转，但仍然在 owner gate 停下等待人工授权。
 
 ## 目的
