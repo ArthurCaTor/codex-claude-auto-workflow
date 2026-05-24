@@ -6,6 +6,7 @@
 先读取：
 - AGENTS.md / CLAUDE.md，如果存在
 - docs/operations/agent-coordination/auto/README.md
+- docs/operations/agent-coordination/auto/BELL.json
 - docs/operations/agent-coordination/auto/messages.ndjson
 - docs/operations/agent-coordination/auto/state.json
 - docs/operations/agent-coordination/auto/BOARD.md
@@ -14,11 +15,11 @@
 只处理 run `mode-b-<projectSlug>-<runSlug>` 和 active task `<task-id>`。
 
 循环：
-- 先读 messages.ndjson，再读 state.json 和 BOARD.md。
-- 只有 status = READY_FOR_CLAUDE 时才工作；否则等待 20 秒后重新读取。
+- 先读 BELL.json，再读 messages.ndjson、state.json 和 BOARD.md。
+- 只有 holder=claude 且 status = READY_FOR_CLAUDE 时才工作；否则等待 20 秒后重新读取。
 - 只执行 active task card。
-- 只写 allowed files：Claude report，以及 auto/messages.ndjson、auto/state.json、auto/BOARD.md。
-- report 完成后，追加一个 REPORT_READY event，并把 state/BOARD 更新到 READY_FOR_CODEX_REVIEW。
+- 只写 allowed files：Claude report，以及 auto/BELL.json、auto/messages.ndjson、auto/state.json、auto/BOARD.md。
+- report 完成后，追加一个 REPORT_READY event，并把 BELL/state/BOARD 更新到 READY_FOR_CODEX_REVIEW，holder=codex。
 - 如果 Codex 发送 reviewVerdict=NEEDS_FIX，只修复 report/coordination files。不要编辑 source。
 - 遇到 OWNER_REVIEW_REQUIRED / OWNER_DECISION_REQUIRED / BLOCKED / ERROR 就停止。
 

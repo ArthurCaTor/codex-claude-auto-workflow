@@ -13,6 +13,9 @@
 - Claude Code 是有边界的执行者，只执行一个 active task card。
 - human owner 手动启动 Claude Code，并授权 owner-gated actions。
 - 文件是协作层。
+- BELL.json 是共享铃铛：holder=claude 表示 Claude 干活，
+  holder=codex 表示 Codex review 或准备下一个有限任务，
+  holder=arthur 表示需要 owner 决策。
 - workflow 应该在一个有限批次内以自动化、低人工干预的 file-heartbeat loop 运行。
 - messages.ndjson 是 append-only coordination truth。
 - state.json 和 BOARD.md 是 projection；必要时可从 messages.ndjson 重建。
@@ -34,6 +37,7 @@
 然后创建或更新：
 
 - docs/operations/agent-coordination/auto/README.md
+- docs/operations/agent-coordination/auto/BELL.json
 - docs/operations/agent-coordination/auto/messages.ndjson
 - docs/operations/agent-coordination/auto/state.json
 - docs/operations/agent-coordination/auto/BOARD.md

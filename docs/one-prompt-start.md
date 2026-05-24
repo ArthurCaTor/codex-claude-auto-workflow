@@ -15,6 +15,9 @@ Use these rules:
 - Claude Code is the bounded executor of exactly one active task card.
 - The human owner manually starts Claude Code and authorizes owner-gated actions.
 - Files are the coordination layer.
+- BELL.json is the shared turn signal: holder=claude means Claude works,
+  holder=codex means Codex reviews or prepares the next bounded task, and
+  holder=arthur means owner decision required.
 - The workflow should run as an automated low-touch file-heartbeat loop inside
   one finite batch.
 - messages.ndjson is append-only coordination truth.
@@ -38,6 +41,7 @@ First read:
 Then create or update:
 
 - docs/operations/agent-coordination/auto/README.md
+- docs/operations/agent-coordination/auto/BELL.json
 - docs/operations/agent-coordination/auto/messages.ndjson
 - docs/operations/agent-coordination/auto/state.json
 - docs/operations/agent-coordination/auto/BOARD.md

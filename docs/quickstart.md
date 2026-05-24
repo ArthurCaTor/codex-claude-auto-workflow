@@ -52,6 +52,7 @@ Copy and adapt:
 
 ```text
 templates/AUTO-README.template.md -> docs/operations/agent-coordination/auto/README.md
+templates/BELL.initial.json       -> docs/operations/agent-coordination/auto/BELL.json
 templates/STATE.initial.json      -> docs/operations/agent-coordination/auto/state.json
 templates/MESSAGES.initial.ndjson -> docs/operations/agent-coordination/auto/messages.ndjson
 templates/BOARD.template.md       -> docs/operations/agent-coordination/auto/BOARD.md
@@ -82,7 +83,9 @@ Avoid first:
 ## 6. Start Codex Heartbeat
 
 Use [../templates/CODEX-HEARTBEAT-PROMPT.template.md](../templates/CODEX-HEARTBEAT-PROMPT.template.md)
-to create a Codex heartbeat automation for exactly one run.
+to create a Codex heartbeat automation for exactly one run. The heartbeat must
+read `BELL.json` first and then verify it against `messages.ndjson` and
+`state.json`.
 
 ## 7. Start Claude Code Manually
 

@@ -12,6 +12,7 @@ owner-gated actions.
 
 ```text
 docs/operations/agent-coordination/auto/
+  BELL.json
   README.md
   messages.ndjson
   state.json
@@ -21,12 +22,27 @@ docs/operations/agent-coordination/auto/
 ## Truth And Projections
 
 ```text
-messages.ndjson = append-only coordination truth
+BELL.json       = shared turn signal: who acts now
+messages.ndjson = append-only audit truth
 state.json      = machine-readable projection
 BOARD.md        = human-readable projection
 ```
 
-If the files disagree, `messages.ndjson` wins.
+Daily automation reads `BELL.json` first, then verifies it against
+`messages.ndjson` and `state.json`. If the files disagree, `messages.ndjson`
+wins and the projections must be resynced before either agent acts.
+
+## Shared Bell
+
+`BELL.json` keeps the coordination intentionally simple:
+
+```text
+holder=claude -> Claude Code works
+holder=codex  -> Codex reviews or prepares the next bounded task
+holder=arthur -> the human owner decides
+```
+
+See [bell.md](bell.md).
 
 ## Message Log
 
@@ -96,8 +112,9 @@ No unbounded backlog is authorized.
 
 The workflow is designed for low-touch automation inside a finite run:
 
-- Claude Code may keep watching the files for the active task.
-- Codex heartbeat may independently review Claude reports and local diffs.
+- Claude Code may keep watching `BELL.json` for the active task.
+- Codex heartbeat may independently review Claude reports and local diffs when
+  `BELL.json.holder = "codex"`.
 - Failed reviews may return to Claude only as a bounded report-only fix loop.
 - The run must stop at `OWNER_REVIEW_REQUIRED` when the batch limit is reached.
 

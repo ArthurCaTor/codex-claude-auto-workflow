@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "holder": "claude",
+  "status": "READY_FOR_CLAUDE",
+  "runId": "mode-b-demo-project-docs-sweep-b01",
+  "taskId": "TASK-DEMO-PROJECT-B01-T01-DOCS-SWEEP",
+  "taskCardPath": "docs/operations/agent-coordination/inbox/TASK-DEMO-PROJECT-B01-T01-DOCS-SWEEP.md",
+  "reportPath": "docs/operations/agent-coordination/reports/TASK-DEMO-PROJECT-B01-T01-DOCS-SWEEP-claude-report.md",
+  "waitingFor": "claude_execution",
+  "lastEventId": "2026-01-01T00:00:01Z-codex-demo-project-docs-sweep-b01-task-ready",
+  "updatedAt": "2026-01-01T00:00:01Z",
+  "summary": "Codex handed the demo docs sweep task to Claude Code."
+}

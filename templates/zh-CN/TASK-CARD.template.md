@@ -35,6 +35,7 @@ STATUS: READY_FOR_CLAUDE
 Claude Code 只能编辑：
 
 - `docs/operations/agent-coordination/reports/<TASK-ID>-claude-report.md`
+- `docs/operations/agent-coordination/auto/BELL.json`
 - `docs/operations/agent-coordination/auto/messages.ndjson`
 - `docs/operations/agent-coordination/auto/state.json`
 - `docs/operations/agent-coordination/auto/BOARD.md`
@@ -59,4 +60,27 @@ Claude Code 只能编辑：
 docs/operations/agent-coordination/reports/<TASK-ID>-claude-report.md
 ```
 
-写完 report 后，追加一个 `REPORT_READY` event，并把 projections 更新到 `READY_FOR_CODEX_REVIEW`。
+写完 report 后，追加一个 `REPORT_READY` event，并把 `BELL.json` 和
+projections 更新到 `READY_FOR_CODEX_REVIEW`，`holder = "codex"`。
+
+## Bell Handoff
+
+开始前确认：
+
+```json
+{
+  "holder": "claude",
+  "status": "READY_FOR_CLAUDE",
+  "taskId": "<TASK-ID>"
+}
+```
+
+写完 report 后，把铃铛交回：
+
+```json
+{
+  "holder": "codex",
+  "status": "READY_FOR_CODEX_REVIEW",
+  "taskId": "<TASK-ID>"
+}
+```

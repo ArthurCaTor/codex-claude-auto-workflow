@@ -20,6 +20,7 @@
 ## Coordination Files
 
 - [ ] 创建 `auto/README.md`。
+- [ ] 创建 `auto/BELL.json`。
 - [ ] 创建 `auto/messages.ndjson`。
 - [ ] 创建 `auto/state.json`。
 - [ ] 创建 `auto/BOARD.md`。
@@ -36,6 +37,7 @@
 - [ ] 写明 forbidden scope。
 - [ ] 写明 validation。
 - [ ] 写明 report path。
+- [ ] 为 first active task 设置 `BELL.json.holder = "claude"`。
 
 ## Owner Gate
 

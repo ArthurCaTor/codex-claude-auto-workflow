@@ -48,6 +48,7 @@ taskId      = TASK-MY-PROJECT-B01-T01-DOCS-SWEEP
 
 ```text
 templates/AUTO-README.template.md -> docs/operations/agent-coordination/auto/README.md
+templates/BELL.initial.json       -> docs/operations/agent-coordination/auto/BELL.json
 templates/STATE.initial.json      -> docs/operations/agent-coordination/auto/state.json
 templates/MESSAGES.initial.ndjson -> docs/operations/agent-coordination/auto/messages.ndjson
 templates/BOARD.template.md       -> docs/operations/agent-coordination/auto/BOARD.md
@@ -84,6 +85,7 @@ templates/zh-CN/
 ## 6. 启动 Codex Heartbeat
 
 使用 [../../templates/zh-CN/CODEX-HEARTBEAT-PROMPT.template.md](../../templates/zh-CN/CODEX-HEARTBEAT-PROMPT.template.md)，为这一个 run 创建 Codex heartbeat automation。
+heartbeat 必须先读 `BELL.json`，再用 `messages.ndjson` 和 `state.json` 校验。
 
 ## 7. 手动启动 Claude Code
 

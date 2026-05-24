@@ -20,6 +20,7 @@
 ## Coordination Files
 
 - [ ] Create `auto/README.md`.
+- [ ] Create `auto/BELL.json`.
 - [ ] Create `auto/messages.ndjson`.
 - [ ] Create `auto/state.json`.
 - [ ] Create `auto/BOARD.md`.
@@ -36,6 +37,7 @@
 - [ ] Write forbidden scope.
 - [ ] Write validation.
 - [ ] Write report path.
+- [ ] Set `BELL.json.holder = "claude"` for the first active task.
 
 ## Owner Gate
 
@@ -43,4 +45,3 @@
 - [ ] Owner manually starts Claude Code.
 - [ ] Codex heartbeat does not control the Claude process.
 - [ ] The run stops at `OWNER_REVIEW_REQUIRED`.
-

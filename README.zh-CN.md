@@ -13,6 +13,14 @@ Human owner = 风险、范围、发布动作的授权关口
 Files       = 共享协作状态
 ```
 
+默认协作模型是 **Shared Bell Workflow v2**：
+
+```text
+BELL.json holder=claude  -> Claude Code 干活
+BELL.json holder=codex   -> Codex review 或准备下一个有限任务
+BELL.json holder=arthur  -> human owner 决策
+```
+
 这个工作流适合这样的场景：你希望 Codex 负责项目管理、任务拆分和验收，同时让 Claude Code 在可见终端里执行实现、文档、验证或审计任务。它可以让有限任务批次自动流转，但仍然在 owner gate 停下等待人工授权。
 
 ## 目的
@@ -70,6 +78,7 @@ run 停在 owner review
 ```text
 docs/operations/agent-coordination/
   auto/
+    BELL.json
     README.md
     messages.ndjson
     state.json
@@ -85,12 +94,14 @@ docs/operations/agent-coordination/
 核心 truth 规则：
 
 ```text
-messages.ndjson = append-only coordination truth
+BELL.json       = shared turn signal: who acts now
+messages.ndjson = append-only audit truth
 state.json      = machine-readable projection
 BOARD.md        = human-readable projection
 ```
 
-如果文件之间不一致，以 `messages.ndjson` 为准。
+日常自动化先读 `BELL.json`，再用 `messages.ndjson` 和 `state.json` 校验。
+如果文件之间不一致，以 `messages.ndjson` 为准，先 resync projection，再行动。
 
 ## 一个 Prompt 启动
 
@@ -125,6 +136,7 @@ Codex 会：
 - [docs/zh-CN/one-prompt-start.md](docs/zh-CN/one-prompt-start.md)
 - [docs/zh-CN/quickstart.md](docs/zh-CN/quickstart.md)
 - [docs/zh-CN/workflow.md](docs/zh-CN/workflow.md)
+- [docs/zh-CN/bell.md](docs/zh-CN/bell.md)
 - [docs/zh-CN/naming.md](docs/zh-CN/naming.md)
 
 然后复制并改写 [templates/zh-CN/](templates/zh-CN/) 里的模板。
@@ -135,6 +147,7 @@ Codex 会：
 docs/
   zh-CN/
   adoption-checklist.md
+  bell.md
   heartbeat.md
   naming.md
   one-prompt-start.md
@@ -148,6 +161,7 @@ examples/
 templates/
   zh-CN/
   AUTO-README.template.md
+  BELL.initial.json
   BOARD.template.md
   CODEX-HEARTBEAT-PROMPT.template.md
   CODEX-REVIEW.template.md

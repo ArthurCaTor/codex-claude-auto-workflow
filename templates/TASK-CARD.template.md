@@ -35,6 +35,7 @@ STATUS: READY_FOR_CLAUDE
 Claude Code may edit only:
 
 - `docs/operations/agent-coordination/reports/<TASK-ID>-claude-report.md`
+- `docs/operations/agent-coordination/auto/BELL.json`
 - `docs/operations/agent-coordination/auto/messages.ndjson`
 - `docs/operations/agent-coordination/auto/state.json`
 - `docs/operations/agent-coordination/auto/BOARD.md`
@@ -61,5 +62,27 @@ docs/operations/agent-coordination/reports/<TASK-ID>-claude-report.md
 ```
 
 After writing the report, append one `REPORT_READY` event and update
-projections to `READY_FOR_CODEX_REVIEW`.
+`BELL.json` and projections to `READY_FOR_CODEX_REVIEW` with
+`holder = "codex"`.
 
+## Bell Handoff
+
+Before working, verify:
+
+```json
+{
+  "holder": "claude",
+  "status": "READY_FOR_CLAUDE",
+  "taskId": "<TASK-ID>"
+}
+```
+
+After reporting, hand the bell back:
+
+```json
+{
+  "holder": "codex",
+  "status": "READY_FOR_CODEX_REVIEW",
+  "taskId": "<TASK-ID>"
+}
+```

@@ -10,6 +10,12 @@
   "requiresOwnerDecision": false,
   "updatedAt": "<utc>",
   "heartbeatAutomationId": "mode-b-<projectSlug>-<runSlug>-monitor",
+  "bellProtocol": {
+    "enabled": true,
+    "bellPath": "docs/operations/agent-coordination/auto/BELL.json",
+    "truthPath": "docs/operations/agent-coordination/auto/messages.ndjson",
+    "rule": "Read BELL.json first, then verify it against messages.ndjson and state.json before acting."
+  },
   "batch": {
     "enabled": true,
     "maxTasks": 1,
@@ -35,6 +41,7 @@
     "codexReviewPath": "docs/operations/agent-coordination/codex-reviews/<task-id>-codex-review.md",
     "allowedEditPaths": [
       "docs/operations/agent-coordination/reports/<task-id>-claude-report.md",
+      "docs/operations/agent-coordination/auto/BELL.json",
       "docs/operations/agent-coordination/auto/messages.ndjson",
       "docs/operations/agent-coordination/auto/state.json",
       "docs/operations/agent-coordination/auto/BOARD.md"
@@ -52,4 +59,3 @@
     "CLAUDE_PROCESS_CONTROL"
   ]
 }
-

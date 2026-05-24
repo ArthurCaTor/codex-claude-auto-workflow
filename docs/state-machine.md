@@ -20,21 +20,21 @@ Normal path:
 
 ```text
 IDLE
--> READY_FOR_CLAUDE
--> CLAUDE_RUNNING
--> READY_FOR_CODEX_REVIEW
--> CODEX_REVIEWING
+-> holder=claude / READY_FOR_CLAUDE
+-> holder=claude / CLAUDE_RUNNING
+-> holder=codex  / READY_FOR_CODEX_REVIEW
+-> holder=codex  / CODEX_REVIEWING
 -> ACCEPTED
--> OWNER_REVIEW_REQUIRED
+-> holder=codex or arthur / OWNER_REVIEW_REQUIRED
 ```
 
 Optional report-only fix path:
 
 ```text
 CODEX_REVIEWING
--> READY_FOR_CLAUDE  (same task, report-only fix, budgeted)
--> CLAUDE_RUNNING
--> READY_FOR_CODEX_REVIEW
+-> holder=claude / READY_FOR_CLAUDE  (same task, report-only fix, budgeted)
+-> holder=claude / CLAUDE_RUNNING
+-> holder=codex  / READY_FOR_CODEX_REVIEW
 ```
 
 Manual recovery states:
@@ -47,4 +47,3 @@ ERROR
 ```
 
 Only the human owner exits manual recovery states.
-

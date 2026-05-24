@@ -10,6 +10,12 @@
   "requiresOwnerDecision": false,
   "updatedAt": "2026-01-01T00:00:01Z",
   "heartbeatAutomationId": "mode-b-demo-project-docs-sweep-b01-monitor",
+  "bellProtocol": {
+    "enabled": true,
+    "bellPath": "docs/operations/agent-coordination/auto/BELL.json",
+    "truthPath": "docs/operations/agent-coordination/auto/messages.ndjson",
+    "rule": "Read BELL.json first, then verify it against messages.ndjson and state.json before acting."
+  },
   "batch": {
     "enabled": true,
     "maxTasks": 1,
@@ -29,4 +35,3 @@
     "scope": "same-active-task-report-and-coordination-files-only"
   }
 }
-

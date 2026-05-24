@@ -14,6 +14,14 @@ Human owner = authorization gate for risk, scope, and release actions
 Files       = shared coordination state
 ```
 
+The default coordination model is **Shared Bell Workflow v2**:
+
+```text
+BELL.json holder=claude  -> Claude Code works
+BELL.json holder=codex   -> Codex reviews or prepares the next bounded task
+BELL.json holder=arthur  -> the human owner decides
+```
+
 The workflow is useful when you want Codex to manage a project and review work,
 while Claude Code performs implementation, documentation, validation, or audit
 tasks in a visible terminal. It keeps the collaboration running automatically
@@ -82,6 +90,7 @@ Each project gets a small coordination directory:
 ```text
 docs/operations/agent-coordination/
   auto/
+    BELL.json
     README.md
     messages.ndjson
     state.json
@@ -97,12 +106,15 @@ docs/operations/agent-coordination/
 The central truth rule:
 
 ```text
-messages.ndjson = append-only coordination truth
+BELL.json       = shared turn signal: who acts now
+messages.ndjson = append-only audit truth
 state.json      = machine-readable projection
 BOARD.md        = human-readable projection
 ```
 
-If the files disagree, `messages.ndjson` wins.
+Daily automation reads `BELL.json` first, then verifies it against
+`messages.ndjson` and `state.json`. If the files disagree, `messages.ndjson`
+wins and the projections must be resynced before either agent acts.
 
 ## One-Prompt Start
 
@@ -140,6 +152,7 @@ Read:
 - [docs/one-prompt-start.md](docs/one-prompt-start.md)
 - [docs/quickstart.md](docs/quickstart.md)
 - [docs/workflow.md](docs/workflow.md)
+- [docs/bell.md](docs/bell.md)
 - [docs/naming.md](docs/naming.md)
 
 Then copy the templates from [templates/](templates/).
@@ -150,6 +163,7 @@ Then copy the templates from [templates/](templates/).
 docs/
   zh-CN/
   adoption-checklist.md
+  bell.md
   heartbeat.md
   naming.md
   one-prompt-start.md
@@ -163,6 +177,7 @@ examples/
 templates/
   zh-CN/
   AUTO-README.template.md
+  BELL.initial.json
   BOARD.template.md
   CODEX-HEARTBEAT-PROMPT.template.md
   CODEX-REVIEW.template.md
