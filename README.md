@@ -2,6 +2,8 @@
 
 An automated, file-based workflow for Codex-managed Claude Code execution.
 
+Language: [English](README.md) | [简体中文](README.zh-CN.md)
+
 Codex-Claude Auto Workflow turns a manual copy/paste relay into a bounded,
 auditable, low-touch automation flow:
 
@@ -146,6 +148,7 @@ Then copy the templates from [templates/](templates/).
 
 ```text
 docs/
+  zh-CN/
   adoption-checklist.md
   heartbeat.md
   naming.md
@@ -158,6 +161,7 @@ docs/
 examples/
   minimal-run/
 templates/
+  zh-CN/
   AUTO-README.template.md
   BOARD.template.md
   CODEX-HEARTBEAT-PROMPT.template.md
