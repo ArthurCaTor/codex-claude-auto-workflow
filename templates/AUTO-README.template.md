@@ -1,11 +1,12 @@
-# Codex-Claude File-Heartbeat Coordination Protocol
+# Codex-Claude Auto Workflow Coordination
 
 STATUS: TEMPLATE - adapt before use.
 
 ## Purpose
 
-Codex and Claude Code coordinate through files. The human owner starts Claude
-Code manually and authorizes owner-gated actions.
+Codex and Claude Code coordinate through files as an automated, low-touch,
+finite workflow. The human owner starts Claude Code manually and authorizes
+owner-gated actions.
 
 ## Truth / Projection
 
@@ -17,7 +18,7 @@ BOARD.md        = human-readable projection
 
 ## State Machine
 
-See `docs/state-machine.md` in the Codex-Claude Protocol project.
+See `docs/state-machine.md` in the Codex-Claude Auto Workflow project.
 
 ## Current Run
 

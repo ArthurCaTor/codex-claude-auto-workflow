@@ -1,7 +1,12 @@
-# Protocol
+# Workflow
 
-Codex-Claude Protocol is a file-heartbeat protocol for coordinating Codex and
-Claude Code through project files.
+Codex-Claude Auto Workflow is an automated file-heartbeat workflow for
+coordinating Codex and Claude Code through project files.
+
+Codex owns planning, task boundaries, heartbeat review, and acceptance. Claude
+Code watches the coordination files, executes the single active task card, and
+reports back. The human owner starts Claude Code manually and authorizes
+owner-gated actions.
 
 ## Coordination Files
 
@@ -86,3 +91,16 @@ Every run declares:
 ```
 
 No unbounded backlog is authorized.
+
+## Automation Rule
+
+The workflow is designed for low-touch automation inside a finite run:
+
+- Claude Code may keep watching the files for the active task.
+- Codex heartbeat may independently review Claude reports and local diffs.
+- Failed reviews may return to Claude only as a bounded report-only fix loop.
+- The run must stop at `OWNER_REVIEW_REQUIRED` when the batch limit is reached.
+
+Automated does not mean ownerless. High-risk actions such as schema changes,
+dependency installation, deployments, commits, pushes, secrets, and external API
+calls require explicit owner authorization.

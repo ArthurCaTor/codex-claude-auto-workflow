@@ -1,9 +1,9 @@
-# Codex-Claude Protocol
+# Codex-Claude Auto Workflow
 
-A file-based coordination protocol for Codex-managed Claude Code execution.
+An automated, file-based workflow for Codex-managed Claude Code execution.
 
-Codex-Claude Protocol turns a manual copy/paste workflow into a bounded,
-auditable collaboration loop:
+Codex-Claude Auto Workflow turns a manual copy/paste relay into a bounded,
+auditable, low-touch automation flow:
 
 ```text
 Codex       = planner, project manager, task-card author, reviewer
@@ -12,13 +12,15 @@ Human owner = authorization gate for risk, scope, and release actions
 Files       = shared coordination state
 ```
 
-The protocol is useful when you want Codex to manage a project and review work,
+The workflow is useful when you want Codex to manage a project and review work,
 while Claude Code performs implementation, documentation, validation, or audit
-tasks in a visible terminal.
+tasks in a visible terminal. It keeps the collaboration running automatically
+inside a finite task batch, while still stopping at owner gates.
 
 ## Purpose
 
-This protocol exists to make multi-agent development safer and less tiring.
+This workflow exists to make multi-agent development safer, more automated, and
+less tiring.
 
 Without it, the owner often has to copy messages between Codex and Claude Code:
 
@@ -31,7 +33,7 @@ Codex reviews
 Owner copies the next fix or task back into Claude Code
 ```
 
-Codex-Claude Protocol replaces most of that manual relay with a small
+Codex-Claude Auto Workflow replaces most of that manual relay with a small
 file-heartbeat state machine:
 
 ```text
@@ -44,6 +46,12 @@ Codex heartbeat reviews the report and local diff
 Codex accepts, blocks, or returns a bounded report-only fix
 The run stops for owner review
 ```
+
+The goal is automated flow, not unlimited autonomy. Codex and Claude can keep a
+bounded run moving with minimal owner copy/paste, including limited
+report-only fix loops, but deployment, secrets, schema changes, dependency
+installs, commits, pushes, and scope expansion still require explicit owner
+authorization.
 
 ## What It Can Do
 
@@ -129,7 +137,7 @@ Read:
 
 - [docs/one-prompt-start.md](docs/one-prompt-start.md)
 - [docs/quickstart.md](docs/quickstart.md)
-- [docs/protocol.md](docs/protocol.md)
+- [docs/workflow.md](docs/workflow.md)
 - [docs/naming.md](docs/naming.md)
 
 Then copy the templates from [templates/](templates/).
@@ -142,7 +150,7 @@ docs/
   heartbeat.md
   naming.md
   one-prompt-start.md
-  protocol.md
+  workflow.md
   quickstart.md
   report-only-fix-loop.md
   roles.md
@@ -164,4 +172,3 @@ templates/
 ## License
 
 MIT. See [LICENSE](LICENSE).
-

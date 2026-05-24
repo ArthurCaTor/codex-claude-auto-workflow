@@ -1,10 +1,10 @@
 # One-Prompt Start
 
 Paste this into Codex from inside the target project. It tells Codex to learn
-the project, initialize the protocol, and produce the short Claude Code prompt.
+the project, initialize the workflow, and produce the short Claude Code prompt.
 
 ```text
-Initialize Codex-Claude Protocol in this project.
+Initialize Codex-Claude Auto Workflow in this project.
 
 Do not implement business features yet. First learn this project and prepare a
 finite Codex-managed / Claude-Code-executed workflow.
@@ -15,6 +15,8 @@ Use these rules:
 - Claude Code is the bounded executor of exactly one active task card.
 - The human owner manually starts Claude Code and authorizes owner-gated actions.
 - Files are the coordination layer.
+- The workflow should run as an automated low-touch file-heartbeat loop inside
+  one finite batch.
 - messages.ndjson is append-only coordination truth.
 - state.json and BOARD.md are projections rebuilt from messages.ndjson if needed.
 - Every run is finite and must stop at OWNER_REVIEW_REQUIRED.
@@ -89,4 +91,3 @@ When finished, report:
 - the short Claude Code startup prompt
 - what owner authorization is required before running
 ```
-

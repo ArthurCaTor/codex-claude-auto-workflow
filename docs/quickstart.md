@@ -1,6 +1,6 @@
 # Quick Start
 
-This guide initializes Codex-Claude Protocol in a new project.
+This guide initializes Codex-Claude Auto Workflow in a new project.
 
 For the shortest path, paste the prompt from
 [one-prompt-start.md](one-prompt-start.md) into Codex from inside your target
@@ -20,7 +20,7 @@ package.json or equivalent test command source
 ```
 
 If the project has no agent instruction file, create one before enabling the
-protocol.
+workflow.
 
 ## 2. Create Coordination Directories
 
