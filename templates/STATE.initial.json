@@ -1,0 +1,55 @@
+{
+  "version": 1,
+  "mode": "B_FILE_HEARTBEAT",
+  "projectSlug": "<projectSlug>",
+  "runSlug": "<runSlug>",
+  "runId": "mode-b-<projectSlug>-<runSlug>",
+  "activeTaskId": "<task-id>",
+  "status": "READY_FOR_CLAUDE",
+  "lastEventId": "<last-event-id>",
+  "requiresOwnerDecision": false,
+  "updatedAt": "<utc>",
+  "heartbeatAutomationId": "mode-b-<projectSlug>-<runSlug>-monitor",
+  "batch": {
+    "enabled": true,
+    "maxTasks": 1,
+    "currentTaskIndex": 1,
+    "completedTasks": 0,
+    "stopAfterMaxTasks": true,
+    "terminalStateAfterBatch": "OWNER_REVIEW_REQUIRED",
+    "taskIds": [
+      "<task-id>"
+    ]
+  },
+  "reportFixLoop": {
+    "enabled": true,
+    "maxReportFixRounds": 2,
+    "currentReportFixRound": 0,
+    "stopWhenBudgetExhausted": true,
+    "scope": "same-active-task-report-and-coordination-files-only"
+  },
+  "currentTask": {
+    "taskId": "<task-id>",
+    "taskCardPath": "docs/operations/agent-coordination/inbox/<task-id>.md",
+    "reportPath": "docs/operations/agent-coordination/reports/<task-id>-claude-report.md",
+    "codexReviewPath": "docs/operations/agent-coordination/codex-reviews/<task-id>-codex-review.md",
+    "allowedEditPaths": [
+      "docs/operations/agent-coordination/reports/<task-id>-claude-report.md",
+      "docs/operations/agent-coordination/auto/messages.ndjson",
+      "docs/operations/agent-coordination/auto/state.json",
+      "docs/operations/agent-coordination/auto/BOARD.md"
+    ]
+  },
+  "stopLines": [
+    "MODE_B_MAX_TASKS_REACHED",
+    "SCHEMA_OR_MIGRATION",
+    "DEPENDENCY_INSTALL",
+    "DEPLOYMENT",
+    "EXTERNAL_API",
+    "PRODUCTION_SECRET",
+    "COMMIT_OR_PUSH",
+    "OWNER_ONLY_DECISION",
+    "CLAUDE_PROCESS_CONTROL"
+  ]
+}
+
