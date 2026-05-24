@@ -1,48 +1,123 @@
-# Mode B File Heartbeat
+# Codex-Claude Protocol
 
-Mode B File Heartbeat is a lightweight coordination protocol for running two
-AI coding agents together:
+A file-based coordination protocol for Codex-managed Claude Code execution.
+
+Codex-Claude Protocol turns a manual copy/paste workflow into a bounded,
+auditable collaboration loop:
 
 ```text
-Codex      = planner, project manager, reviewer
-Claude Code = bounded executor
-Human owner = authorization gate
-Files      = shared coordination state
+Codex       = planner, project manager, task-card author, reviewer
+Claude Code = executor of exactly one active bounded task
+Human owner = authorization gate for risk, scope, and release actions
+Files       = shared coordination state
 ```
 
-It is for teams who want Codex to manage task slicing and review while Claude
-Code executes one bounded task at a time, without requiring the human owner to
-copy every intermediate result back and forth.
+The protocol is useful when you want Codex to manage a project and review work,
+while Claude Code performs implementation, documentation, validation, or audit
+tasks in a visible terminal.
 
-## What It Solves
+## Purpose
 
-The common manual workflow looks like this:
+This protocol exists to make multi-agent development safer and less tiring.
+
+Without it, the owner often has to copy messages between Codex and Claude Code:
 
 ```text
-Human -> Codex: plan the task
-Human copies Codex task -> Claude Code
+Owner asks Codex to plan
+Owner copies Codex instructions into Claude Code
 Claude Code executes
-Human copies Claude report -> Codex
+Owner copies Claude report back into Codex
 Codex reviews
-Human copies fix or next task -> Claude Code
+Owner copies the next fix or task back into Claude Code
 ```
 
-Mode B replaces most of that copy/paste with a file-based heartbeat:
+Codex-Claude Protocol replaces most of that manual relay with a small
+file-heartbeat state machine:
 
 ```text
-Codex writes task card + state
-Claude Code watches files and executes only the active task
-Claude Code writes report + event
-Codex heartbeat reviews report + diff
-Codex accepts, blocks, or sends a bounded report-only fix
+Codex writes a bounded task card
+Codex initializes a finite run
+Claude Code watches the coordination files
+Claude Code executes only the active task
+Claude Code writes a report and appends an event
+Codex heartbeat reviews the report and local diff
+Codex accepts, blocks, or returns a bounded report-only fix
+The run stops for owner review
 ```
+
+## What It Can Do
+
+- Run documentation audits.
+- Run source sweeps and inventory tasks.
+- Delegate narrow implementation slices to Claude Code.
+- Keep Codex in charge of task sequencing and acceptance.
+- Preserve a durable audit trail of handoff, report, review, and owner gates.
+- Support multiple projects at the same time through unique run/task names.
+- Reduce human copy/paste to one startup prompt for Codex and one short startup
+  prompt for Claude Code.
+
+## What It Does Not Do
+
+- It is not a daemon or hosted service.
+- It does not start or control Claude Code.
+- It does not remove the need for project-specific architecture rules.
+- It does not authorize deployment, secrets, dependency installation, commits,
+  pushes, migrations, or external API calls by default.
+- It does not let Claude Code self-advance through an unbounded backlog.
+
+## How It Works
+
+Each project gets a small coordination directory:
+
+```text
+docs/operations/agent-coordination/
+  auto/
+    README.md
+    messages.ndjson
+    state.json
+    BOARD.md
+  inbox/
+    TASK-*.md
+  reports/
+    TASK-*-claude-report.md
+  codex-reviews/
+    TASK-*-codex-review.md
+```
+
+The central truth rule:
+
+```text
+messages.ndjson = append-only coordination truth
+state.json      = machine-readable projection
+BOARD.md        = human-readable projection
+```
+
+If the files disagree, `messages.ndjson` wins.
+
+## One-Prompt Start
+
+To start the whole setup in a new project, open Codex in that project and paste
+the prompt from:
+
+[docs/one-prompt-start.md](docs/one-prompt-start.md)
+
+Codex will then:
+
+1. Read the target project's rules and git status.
+2. Pick project-specific names.
+3. Create the coordination directories and files.
+4. Create the first low-risk task card.
+5. Prepare a Codex heartbeat prompt.
+6. Print a short Claude Code startup prompt for the owner to paste into
+   Claude Code.
+7. Stop and ask for owner authorization before execution.
 
 ## Key Guarantees
 
 - Every run is finite.
+- Every task has allowed files, forbidden scope, validation, report path, and
+  stop conditions.
 - Claude Code executes only one active task card.
-- `messages.ndjson` is append-only coordination truth.
-- `state.json` and `BOARD.md` are projections.
 - Codex independently reviews Claude reports and local diffs.
 - Owner-gated actions stop for human approval.
 - Report issues can loop back to Claude with a bounded report-only fix loop.
@@ -50,13 +125,14 @@ Codex accepts, blocks, or sends a bounded report-only fix
 
 ## Quick Start
 
-1. Read [docs/quickstart.md](docs/quickstart.md).
-2. Copy the templates from [templates/](templates/).
-3. Adapt the project-specific names from [docs/naming.md](docs/naming.md).
-4. Create one low-risk task card.
-5. Start Claude Code manually with the short startup prompt.
-6. Let Codex heartbeat review the report.
-7. Stop at `OWNER_REVIEW_REQUIRED`.
+Read:
+
+- [docs/one-prompt-start.md](docs/one-prompt-start.md)
+- [docs/quickstart.md](docs/quickstart.md)
+- [docs/protocol.md](docs/protocol.md)
+- [docs/naming.md](docs/naming.md)
+
+Then copy the templates from [templates/](templates/).
 
 ## Repository Layout
 
@@ -65,6 +141,7 @@ docs/
   adoption-checklist.md
   heartbeat.md
   naming.md
+  one-prompt-start.md
   protocol.md
   quickstart.md
   report-only-fix-loop.md
@@ -84,12 +161,7 @@ templates/
   TASK-CARD.template.md
 ```
 
-## Status
-
-This is a documentation and process template. It does not provide a runtime
-daemon. Codex and Claude Code remain separate tools; this protocol defines how
-they coordinate through files.
-
 ## License
 
 MIT. See [LICENSE](LICENSE).
+

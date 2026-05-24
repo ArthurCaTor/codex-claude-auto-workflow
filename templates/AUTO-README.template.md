@@ -1,4 +1,4 @@
-# Mode B File-Heartbeat Coordination Protocol
+# Codex-Claude File-Heartbeat Coordination Protocol
 
 STATUS: TEMPLATE - adapt before use.
 
@@ -17,7 +17,7 @@ BOARD.md        = human-readable projection
 
 ## State Machine
 
-See `docs/state-machine.md` in the Mode B File Heartbeat project.
+See `docs/state-machine.md` in the Codex-Claude Protocol project.
 
 ## Current Run
 
@@ -27,4 +27,3 @@ See `docs/state-machine.md` in the Mode B File Heartbeat project.
 - Automation: `mode-b-<projectSlug>-<runSlug>-monitor`
 - Max tasks: `1`
 - Max report-only fix rounds: `2`
-

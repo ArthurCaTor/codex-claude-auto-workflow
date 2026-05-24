@@ -2,5 +2,4 @@
 
 ## Unreleased
 
-- Initial documentation project for Mode B File Heartbeat.
-
+- Initial documentation project for Codex-Claude Protocol.

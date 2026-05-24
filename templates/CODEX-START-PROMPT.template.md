@@ -1,19 +1,26 @@
 # Codex Start Prompt
 
+This is the same startup flow as `docs/one-prompt-start.md`, kept here as a
+template for copying into other projects.
+
 ```text
-Initialize Mode B in this project.
+Initialize Codex-Claude Protocol in this project.
 
-First learn the project rules and current git status. Do not implement business
-features yet.
+Do not implement business features yet. First learn this project and prepare a
+finite Codex-managed / Claude-Code-executed workflow.
 
-Use Mode B File Heartbeat:
-- Codex plans and reviews.
-- Claude Code executes one bounded task.
-- messages.ndjson is append-only truth.
+Use these rules:
+- Codex plans, manages, and reviews.
+- Claude Code executes exactly one active bounded task card.
+- The human owner manually starts Claude Code and authorizes owner-gated actions.
+- messages.ndjson is append-only coordination truth.
 - state.json and BOARD.md are projections.
-- every run is finite.
+- every run is finite and stops at OWNER_REVIEW_REQUIRED.
 - names must include projectSlug and runSlug.
-- report-only fix loops are bounded by maxReportFixRounds.
+- failed reviews may return to Claude only as a bounded report-only fix loop.
+
+First read project instructions, README, architecture docs if present, package
+scripts, and git status.
 
 Create:
 - docs/operations/agent-coordination/auto/README.md
@@ -26,6 +33,10 @@ Create:
 
 Generate one low-risk first task card, a Codex heartbeat prompt, and a short
 copy-paste Claude Code startup prompt.
+
+Do not start/stop Claude Code, deploy, install dependencies, call external APIs,
+use secrets, change schema/migrations, commit, push, merge, or continue into
+business implementation.
 
 Stop after preparation and ask for owner authorization before the first run.
 ```

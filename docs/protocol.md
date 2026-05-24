@@ -1,6 +1,7 @@
 # Protocol
 
-Mode B is a file-heartbeat protocol.
+Codex-Claude Protocol is a file-heartbeat protocol for coordinating Codex and
+Claude Code through project files.
 
 ## Coordination Files
 
@@ -85,4 +86,3 @@ Every run declares:
 ```
 
 No unbounded backlog is authorized.
-

@@ -1,6 +1,11 @@
 # Quick Start
 
-This guide initializes Mode B in a new project.
+This guide initializes Codex-Claude Protocol in a new project.
+
+For the shortest path, paste the prompt from
+[one-prompt-start.md](one-prompt-start.md) into Codex from inside your target
+project. The rest of this document explains what that prompt causes Codex to
+create.
 
 ## 1. Prepare The Project
 
@@ -14,7 +19,8 @@ docs/architecture/*
 package.json or equivalent test command source
 ```
 
-If the project has no agent instruction file, create one before enabling Mode B.
+If the project has no agent instruction file, create one before enabling the
+protocol.
 
 ## 2. Create Coordination Directories
 
@@ -40,7 +46,7 @@ taskId      = TASK-MY-PROJECT-B01-T01-DOCS-SWEEP
 
 See [naming.md](naming.md).
 
-## 4. Add Mode B Files
+## 4. Add Coordination Files
 
 Copy and adapt:
 
@@ -80,8 +86,8 @@ to create a Codex heartbeat automation for exactly one run.
 
 ## 7. Start Claude Code Manually
 
-Arthur manually opens Claude Code in the target project directory and pastes
-the adapted short prompt from
+The human owner manually opens Claude Code in the target project directory and
+pastes the adapted short prompt from
 [../templates/SHORT-CLAUDE-STARTUP-PROMPT.template.md](../templates/SHORT-CLAUDE-STARTUP-PROMPT.template.md).
 
 Do not ask Codex to start, stop, kill, or restart Claude Code.
@@ -95,4 +101,3 @@ OWNER_REVIEW_REQUIRED
 ```
 
 The owner decides whether to start another finite batch.
-
