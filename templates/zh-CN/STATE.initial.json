@@ -5,7 +5,7 @@
   "mode": "B_CURRENT_ONLY",
   "projectSlug": "<projectSlug>",
   "runId": "<runId>",
-  "runName": "<projectName> reset pending",
+  "runName": "<projectName> 重置待执行",
   "activeTaskId": null,
   "status": "IDLE",
   "payloadType": "RESET_PENDING",
@@ -21,6 +21,6 @@
     "currentPath": "docs/operations/agent-coordination/auto/CURRENT.md",
     "legacyDebugPath": "docs/operations/agent-coordination/auto/messages.ndjson",
     "projectionPath": "docs/operations/agent-coordination/auto/state.json",
-    "rule": "Read BELL.json first, then CURRENT.md. BELL.seq must equal CURRENT.md SEQ before anyone acts. messages.ndjson, old task cards/reports/reviews, timestamps, event ids, and file mtimes are legacy/debug only."
+    "rule": "先读 BELL.json，再读 CURRENT.md。任何行动前 BELL.seq 必须等于 CURRENT.md SEQ。messages.ndjson、旧 task/report/review、timestamp、event id、file mtime 仅作 legacy/debug。"
   }
 }

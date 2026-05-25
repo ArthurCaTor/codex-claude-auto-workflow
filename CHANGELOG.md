@@ -10,6 +10,10 @@
   and fixed task-chain prompts.
 - Added drift handling for unreadable, partial, missing-field, or seq-mismatched
   packets, plus Claude report-time same `seq/taskId` ownership recheck.
+- Refreshed bilingual documentation wording and aligned templates with the new
+  review gate semantics (`READY_FOR_CODEX_REVIEW` must be reviewed before
+  scheduling), bounded same-task fix loop behavior, and fully localized Chinese
+  template prompts.
 - Initial documentation project for Codex-Claude Auto Workflow.
 - Renamed public positioning to workflow and clarified the bounded automation
   model.

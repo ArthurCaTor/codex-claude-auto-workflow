@@ -1,49 +1,45 @@
-# Report-Only Fix Loop
+# Bounded Fix Loop
 
-Mode B can automatically return a failed Codex review to Claude Code only when
-the problem is report-only.
+CURRENT_ONLY_KISS_V1 allows a bounded same-task fix loop after Codex review,
+but only inside explicit limits.
 
-## Allowed Automatic Fixes
+Default profile: report-and-coordination fixes only.
 
-Examples:
+## Automatic Fix Is Allowed Only When
 
-- missing validation summary in the Claude report
-- unclear file inventory
-- missing risk section
-- wrong projection state after report
-- `BOARD.md` not updated after `REPORT_READY`
-- report formatting problem
+- the active task id stays the same
+- the fix stays inside the same task's allowed files
+- no hard gate is touched
+- retry budget is still available
+- Codex has completed review for `READY_FOR_CODEX_REVIEW`
 
-## Forbidden Automatic Fixes
+## Typical Allowed Fixes
 
-Stop for owner review if the fix requires:
+- missing validation summary in Claude report
+- unclear file inventory or risk section
+- wrong projection fields in `state.json` / `BOARD.md`
+- malformed `CURRENT.md` report packet
+- missing handback fields in `BELL.json`
 
-- source code edits
-- tests
-- schema or migrations
-- architecture docs
-- business docs
-- dependency installation
-- deployment
-- external API calls
-- secrets
-- commits or pushes
-- owner judgment
+## Stop And Escalate To Owner When
 
-## State Field
+- fix requires code, schema, migration, or dependency changes
+- fix requires deployment, secrets, external API, commit/push/PR/release
+- fix requires files outside current task scope
+- retry budget is exhausted
+- drift cannot be safely reconciled
 
-```json
-{
-  "reportFixLoop": {
-    "enabled": true,
-    "maxReportFixRounds": 2,
-    "currentReportFixRound": 0,
-    "stopWhenBudgetExhausted": true,
-    "scope": "same-active-task-report-and-coordination-files-only"
-  }
-}
+## Operational Shape
+
+Codex review may return `NEEDS_FIX` to Claude as a same-task packet:
+
+```text
+CURRENT.md first
+BELL.json second
+holder=claude
+status=READY_FOR_CLAUDE
+taskId=unchanged
 ```
 
-When the budget is exhausted, stop at `OWNER_REVIEW_REQUIRED`,
-`OWNER_DECISION_REQUIRED`, or `BLOCKED`.
-
+If fixed and accepted, Codex either publishes the next authorized one-card
+packet or parks in `IDLE` / `OWNER_REVIEW_REQUIRED` per owner policy.

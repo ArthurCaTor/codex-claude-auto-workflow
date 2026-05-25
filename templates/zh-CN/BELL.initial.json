@@ -14,5 +14,5 @@
   "waitingFor": "codex_schedule",
   "packetId": "seq-1-codex-reset-pending",
   "updatedAt": "<debug-utc>",
-  "summary": "Clean reset. No Claude task is executable until Codex publishes a fresh CURRENT.md plus BELL.json task packet."
+  "summary": "已重置。除非 Codex 发布新的 CURRENT.md 任务包并用同一 seq 更新 BELL.json，否则 Claude 不可执行任务。"
 }

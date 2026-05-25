@@ -1,47 +1,44 @@
 # <task-id>
 
-## Goal
+## 目标
 
-<one bounded goal>
+<一个有边界的目标>
 
 ## Allowed Files
 
 - <path>
 
-## Forbidden Scope
+## 禁止范围
 
-- no schema or migrations
-- no dependency installation
-- no package or lockfile changes
-- no deployment or external API calls
-- no secrets
-- no commit, push, merge, or PR
-- no work outside this task card
+- 不改 schema 或 migration
+- 不安装依赖
+- 不改 package 或 lockfile
+- 不部署，不调用外部 API
+- 不使用 secrets
+- 不 commit / push / merge / PR
+- 不越出本任务卡范围
 
-## Instructions
+## 执行步骤
 
-1. Read `docs/operations/agent-coordination/auto/BELL.json`.
-2. Read `docs/operations/agent-coordination/auto/CURRENT.md`.
-3. Confirm `BELL.seq == CURRENT.SEQ`.
-4. Execute only if `holder=claude/status=READY_FOR_CLAUDE` and CURRENT names
-   this task.
-5. Write the required report.
-6. Before writing report packets, reread BELL/CURRENT and confirm the same
-   `seq/taskId`.
+1. 读取 `docs/operations/agent-coordination/auto/BELL.json`。
+2. 读取 `docs/operations/agent-coordination/auto/CURRENT.md`。
+3. 确认 `BELL.seq == CURRENT.SEQ`。
+4. 仅当 `holder=claude/status=READY_FOR_CLAUDE` 且 CURRENT 指向本任务时执行。
+5. 写 required report。
+6. 写 report packet 前重读 BELL/CURRENT，并确认同一 `seq/taskId`。
 
-## Validation
+## 验证
 
 ```text
 <commands>
 ```
 
-## Report Path
+## 报告路径
 
 ```text
 docs/operations/agent-coordination/reports/<task-id>-claude-report.md
 ```
 
-## Stop Conditions
+## 停止条件
 
-Stop and return to Codex/owner if any forbidden scope is required or if
-`PROJECTION_DRIFT` occurs.
+若需要越过禁止范围，或出现 `PROJECTION_DRIFT`，立即停止并回交 Codex/owner。

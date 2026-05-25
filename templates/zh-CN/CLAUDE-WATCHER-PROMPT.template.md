@@ -1,45 +1,41 @@
 # Claude Current-Only Watcher Prompt
 
-Start a persistent watcher in `<PROJECT_ROOT>`.
+在 `<PROJECT_ROOT>` 启动持续 watcher。
 
-This is not a one-shot task. Do not exit after writing a report unless Codex
-explicitly says `no watch needed / exit watch`.
+这不是 one-shot 任务。写完 report 后不要退出，除非 Codex 明确说
+`no watch needed / exit watch`。
 
-Only read active communication truth:
+只读取当前通信真相：
 
 ```text
 docs/operations/agent-coordination/auto/BELL.json
 docs/operations/agent-coordination/auto/CURRENT.md
 ```
 
-At the start of every loop:
+每轮开始时：
 
-1. Read `BELL.json`.
-2. Read `CURRENT.md`.
-3. Confirm `BELL.json.seq == CURRENT.md SEQ`.
-4. If either file is unreadable, malformed, partially written, missing required
-   fields, or seq-mismatched, report `PROJECTION_DRIFT`, do not act, sleep 60
-   seconds, then reread.
+1. 读取 `BELL.json`。
+2. 读取 `CURRENT.md`。
+3. 确认 `BELL.json.seq == CURRENT.md SEQ`。
+4. 如果任一文件不可读、格式错误、疑似半写、缺必需字段或 seq 不一致，报告
+   `PROJECTION_DRIFT`，不要行动，等待 60 秒后重读。
 
-Only work when:
+仅在以下条件满足时执行：
 
 ```text
 BELL.json.holder = claude
 BELL.json.status = READY_FOR_CLAUDE
 ```
 
-Execute only the current task named by `CURRENT.md`. Do not self-select or
-generate the next task card.
+只执行 `CURRENT.md` 指向的当前任务，不自选下一张任务卡。
 
-When finished:
+完成后：
 
-1. Write the required report.
-2. Before overwriting `CURRENT.md` or `BELL.json`, reread `BELL.json` first and
-   `CURRENT.md` second. Confirm the same seq/taskId and
-   holder=claude/status=READY_FOR_CLAUDE.
-3. If anything changed, report `PROJECTION_DRIFT`, do not overwrite, and
-   continue the 60-second watcher loop.
-4. Overwrite `CURRENT.md` first with the next-seq `REPORT_READY` packet.
-5. Overwrite `BELL.json` second with the same seq, `holder=codex`, and
-   `status=READY_FOR_CODEX_REVIEW`.
-6. Continue the hard 60-second watcher loop and write no idle heartbeat files.
+1. 写 required report。
+2. 覆盖 `CURRENT.md` 或 `BELL.json` 前，先重读 `BELL.json` 再重读 `CURRENT.md`。
+   确认仍是同一 `seq/taskId`，且 `holder=claude/status=READY_FOR_CLAUDE`。
+3. 若不一致，报告 `PROJECTION_DRIFT`，不要覆盖文件，继续 60 秒 watcher。
+4. 先覆盖 `CURRENT.md` 为 next-seq `REPORT_READY` packet。
+5. 再覆盖 `BELL.json` 为同一个 seq，`holder=codex`，
+   `status=READY_FOR_CODEX_REVIEW`。
+6. 持续保持 60 秒 watcher，等待时不写 heartbeat 文件。

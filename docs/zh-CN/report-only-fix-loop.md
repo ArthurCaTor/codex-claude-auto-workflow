@@ -1,46 +1,45 @@
-# Report-Only Fix Loop
+# 有限修复循环
 
-只有当问题是 report-only 时，Mode B 才能把未通过的 Codex review 自动回给 Claude Code。
+CURRENT_ONLY_KISS_V1 支持在 Codex review 之后，把同一任务内的修复有限回给
+Claude，但必须满足明确边界。
 
-## 允许自动修复
+默认配置：只允许 report 与 coordination 文件修复。
 
-例子：
+## 允许自动回修的前提
+
+- active task id 不变
+- 修复范围仍在该任务 allowed files 内
+- 不触发 hard gate
+- retry budget 仍有余额
+- Codex 已完成 `READY_FOR_CODEX_REVIEW` 的审查
+
+## 常见可自动修复项
 
 - Claude report 缺少 validation summary
-- file inventory 不清楚
-- 缺少 risk section
-- report 后 projection state 错误
-- `REPORT_READY` 之后没有更新 `BOARD.md`
-- report formatting problem
+- file inventory 或 risk section 不清楚
+- `state.json` / `BOARD.md` projection 字段错误
+- `CURRENT.md` report packet 字段不完整
+- `BELL.json` 交接字段缺失
 
-## 禁止自动修复
+## 必须停止并升级 owner 的情况
 
-如果修复需要以下动作，必须停下等待 owner review：
+- 修复需要改代码、schema、migration、依赖
+- 修复需要部署、secrets、外部 API、commit/push/PR/release
+- 修复需要越过当前任务 allowed files
+- retry budget 已耗尽
+- drift 无法安全对齐
 
-- source code edits
-- tests
-- schema or migrations
-- architecture docs
-- business docs
-- dependency installation
-- deployment
-- external API calls
-- secrets
-- commits or pushes
-- owner judgment
+## 运行形态
 
-## State Field
+Codex review 可以把 `NEEDS_FIX` 以“同一任务 packet”回给 Claude：
 
-```json
-{
-  "reportFixLoop": {
-    "enabled": true,
-    "maxReportFixRounds": 2,
-    "currentReportFixRound": 0,
-    "stopWhenBudgetExhausted": true,
-    "scope": "same-active-task-report-and-coordination-files-only"
-  }
-}
+```text
+先写 CURRENT.md
+再写 BELL.json
+holder=claude
+status=READY_FOR_CLAUDE
+taskId 不变
 ```
 
-预算耗尽后，停在 `OWNER_REVIEW_REQUIRED`、`OWNER_DECISION_REQUIRED` 或 `BLOCKED`。
+修复通过后，Codex 要么发布下一张已授权单卡，要么按 owner 策略停在
+`IDLE` / `OWNER_REVIEW_REQUIRED`。
