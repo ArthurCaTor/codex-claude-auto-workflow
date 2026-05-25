@@ -1,123 +1,75 @@
 # Workflow
 
-Codex-Claude Auto Workflow is an automated file-heartbeat workflow for
-coordinating Codex and Claude Code through project files.
-
-Codex owns planning, task boundaries, heartbeat review, and acceptance. Claude
-Code watches the coordination files, executes the single active task card, and
-reports back. The human owner starts Claude Code manually and authorizes
-owner-gated actions.
-
-## Coordination Files
+CURRENT_ONLY_KISS_V1 coordinates one Codex session and one manually started
+Claude Code watcher through two current files.
 
 ```text
-docs/operations/agent-coordination/auto/
-  BELL.json
-  README.md
-  messages.ndjson
-  state.json
-  BOARD.md
+BELL.json  = small machine turn signal
+CURRENT.md = only active detailed communication packet
+state.json = projection/debug
+BOARD.md   = projection/debug
 ```
 
-## Truth And Projections
+Historical logs, old cards, reports, reviews, terminal recaps, timestamps,
+event ids, and file mtimes are legacy/debug only. They do not decide current
+truth.
+
+## Read Order
 
 ```text
-BELL.json       = shared turn signal: who acts now
-messages.ndjson = append-only audit truth
-state.json      = machine-readable projection
-BOARD.md        = human-readable projection
+1. Read BELL.json.
+2. Read CURRENT.md.
+3. Require BELL.json.seq == CURRENT.md SEQ.
+4. Read the task card or report only if CURRENT.md names it.
 ```
 
-Daily automation reads `BELL.json` first, then verifies it against
-`messages.ndjson` and `state.json`. If the files disagree, `messages.ndjson`
-wins and the projections must be resynced before either agent acts.
+If files are unreadable, malformed, partially written, missing required fields,
+or seq-mismatched, report `PROJECTION_DRIFT` and do not act.
 
-## Shared Bell
-
-`BELL.json` keeps the coordination intentionally simple:
+## Signals
 
 ```text
-holder=claude -> Claude Code works
-holder=codex  -> Codex reviews or prepares the next bounded task
-holder=arthur -> the human owner decides
+holder=claude / READY_FOR_CLAUDE
+  Claude executes the one task named by CURRENT.md.
+
+holder=codex / READY_FOR_CODEX_REVIEW
+  Codex reviews report, diff, scope, and validation.
+
+holder=codex / IDLE
+  Codex may schedule exactly one safe bounded card.
+
+holder=arthur or hard-gate status
+  Stop for owner decision.
 ```
 
-See [bell.md](bell.md).
+## Writer Order
 
-## Message Log
-
-Each line in `messages.ndjson` is one JSON object.
-
-Minimum fields:
-
-```json
-{
-  "id": "2026-01-01T00:00:00Z-codex-my-project-b01-task-ready",
-  "from": "codex",
-  "to": "claude",
-  "projectSlug": "my-project",
-  "runId": "mode-b-my-project-docs-sweep-b01",
-  "taskId": "TASK-MY-PROJECT-B01-T01-DOCS-SWEEP",
-  "type": "TASK_READY",
-  "summary": "Task card ready.",
-  "createdAt": "2026-01-01T00:00:00Z"
-}
-```
-
-Common event types:
+Codex publishes task or fix packets:
 
 ```text
-INIT
-TASK_READY
-CLAUDE_STARTED
-REPORT_READY
-CODEX_REVIEW_STARTED
-REVIEW_ACCEPTED
-REVIEW_NEEDS_FIX
-REVIEW_BLOCKED
-OWNER_DECISION_REQUIRED
-OWNER_REVIEW_REQUIRED
-BOARD_UPDATED
-HEARTBEAT
-ERROR
+1. choose next seq = current BELL.seq + 1
+2. overwrite CURRENT.md first
+3. overwrite BELL.json second with the same seq
+4. update state.json / BOARD.md only as projections
 ```
 
-## Write Rules
+Claude reports completion:
 
-- Never edit old `messages.ndjson` lines.
-- Append correction events instead of rewriting history.
-- Update `state.json` and `BOARD.md` with temp-file plus atomic rename when
-  possible.
-- One actor should append at most one action event per heartbeat.
-
-## Finite Run Rule
-
-Every run declares:
-
-```json
-{
-  "batch": {
-    "enabled": true,
-    "maxTasks": 1,
-    "completedTasks": 0,
-    "stopAfterMaxTasks": true,
-    "terminalStateAfterBatch": "OWNER_REVIEW_REQUIRED"
-  }
-}
+```text
+1. write the required report
+2. reread BELL.json and CURRENT.md
+3. confirm holder=claude/status=READY_FOR_CLAUDE and same seq/taskId
+4. overwrite CURRENT.md first as REPORT_READY
+5. overwrite BELL.json second as holder=codex / READY_FOR_CODEX_REVIEW
+6. continue the 60-second watcher loop
 ```
 
-No unbounded backlog is authorized.
+## Finite Automation
 
-## Automation Rule
+Codex may publish only one task card at a time. If the owner provides a fixed
+task chain, Codex converts that chain into sequential Claude cards and does not
+regenerate the whole blueprint or let Claude self-select work.
 
-The workflow is designed for low-touch automation inside a finite run:
-
-- Claude Code may keep watching `BELL.json` for the active task.
-- Codex heartbeat may independently review Claude reports and local diffs when
-  `BELL.json.holder = "codex"`.
-- Failed reviews may return to Claude only as a bounded report-only fix loop.
-- The run must stop at `OWNER_REVIEW_REQUIRED` when the batch limit is reached.
-
-Automated does not mean ownerless. High-risk actions such as schema changes,
-dependency installation, deployments, commits, pushes, secrets, and external API
-calls require explicit owner authorization.
+`READY_FOR_CODEX_REVIEW` must be reviewed before any next card is published.
+`NEEDS_FIX` may be returned to Claude only inside the same active task, allowed
+files, and retry budget.

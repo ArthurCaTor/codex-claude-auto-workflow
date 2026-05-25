@@ -1,3 +1,0 @@
-{"id":"2026-01-01T00:00:00Z-codex-demo-project-docs-sweep-b01-init","from":"codex","to":"owner","projectSlug":"demo-project","runId":"mode-b-demo-project-docs-sweep-b01","taskId":"TASK-DEMO-PROJECT-B01-T01-DOCS-SWEEP","type":"INIT","summary":"Finite Mode B demo run initialized.","createdAt":"2026-01-01T00:00:00Z"}
-{"id":"2026-01-01T00:00:01Z-codex-demo-project-docs-sweep-b01-task-ready","from":"codex","to":"claude","projectSlug":"demo-project","runId":"mode-b-demo-project-docs-sweep-b01","taskId":"TASK-DEMO-PROJECT-B01-T01-DOCS-SWEEP","type":"TASK_READY","summary":"Demo task card ready.","createdAt":"2026-01-01T00:00:01Z"}
-

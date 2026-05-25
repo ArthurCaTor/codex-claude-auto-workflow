@@ -22,16 +22,5 @@
     "legacyDebugPath": "docs/operations/agent-coordination/auto/messages.ndjson",
     "projectionPath": "docs/operations/agent-coordination/auto/state.json",
     "rule": "Read BELL.json first, then CURRENT.md. BELL.seq must equal CURRENT.md SEQ before anyone acts. messages.ndjson, old task cards/reports/reviews, timestamps, event ids, and file mtimes are legacy/debug only."
-  },
-  "watcherLiveness": {
-    "expected": true,
-    "pollSeconds": 60,
-    "hardLoop": true,
-    "idleHeartbeatEventRequired": false,
-    "waitSignalRequired": true,
-    "waitSignalSuffix": "Next poll in 60s",
-    "recovery": "Claude remains in a hard 60-second watcher loop, rereads BELL.json then CURRENT.md, writes no idle heartbeat files, and preserves this rule through context compaction."
-  },
-  "currentTask": null,
-  "ownerDecisionNeeded": null
+  }
 }

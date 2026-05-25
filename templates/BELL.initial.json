@@ -1,13 +1,18 @@
 {
   "version": 1,
-  "holder": "claude",
-  "status": "READY_FOR_CLAUDE",
-  "runId": "mode-b-<projectSlug>-<runSlug>",
-  "taskId": "<task-id>",
-  "taskCardPath": "docs/operations/agent-coordination/inbox/<task-id>.md",
-  "reportPath": "docs/operations/agent-coordination/reports/<task-id>-claude-report.md",
-  "waitingFor": "claude_execution",
-  "lastEventId": "<last-event-id>",
-  "updatedAt": "<utc>",
-  "summary": "Codex handed the active bounded task to Claude Code."
+  "seq": 1,
+  "protocol": "CURRENT_ONLY_KISS_V1",
+  "projectSlug": "<projectSlug>",
+  "holder": "codex",
+  "status": "IDLE",
+  "runId": "<runId>",
+  "taskId": null,
+  "payloadType": "RESET_PENDING",
+  "taskCardPath": null,
+  "reportPath": null,
+  "currentPath": "docs/operations/agent-coordination/auto/CURRENT.md",
+  "waitingFor": "codex_schedule",
+  "packetId": "seq-1-codex-reset-pending",
+  "updatedAt": "<debug-utc>",
+  "summary": "Clean reset. No Claude task is executable until Codex publishes a fresh CURRENT.md plus BELL.json task packet."
 }

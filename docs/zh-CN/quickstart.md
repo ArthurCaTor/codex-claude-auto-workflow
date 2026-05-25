@@ -1,104 +1,48 @@
 # 快速开始
 
-本指南用于在新项目里初始化 Codex-Claude Auto Workflow。
+## 1. 复制模板
 
-最快方式：在目标项目中打开 Codex，粘贴 [one-prompt-start.md](one-prompt-start.md) 里的 prompt。下面解释这段 prompt 会让 Codex 创建什么。
-
-## 1. 准备项目
-
-在目标项目中找到项目指令文件：
+复制到目标项目的 `docs/operations/agent-coordination/auto/`：
 
 ```text
-AGENTS.md
-CLAUDE.md
-README.md
-docs/architecture/*
-package.json or equivalent test command source
+templates/BELL.initial.json -> BELL.json
+templates/CURRENT.initial.md -> CURRENT.md
+templates/STATE.initial.json -> state.json
+templates/BOARD.template.md -> BOARD.md
+templates/AUTO-README.template.md -> README.md
+templates/COMMUNICATION_ASCII_GATE.template.md -> COMMUNICATION_ASCII_GATE.md
+templates/CODEX-HEARTBEAT-PROMPT.template.md -> CODEX-HEARTBEAT-PROMPT.md
+templates/CLAUDE-WATCHER-PROMPT.template.md -> CLAUDE-WATCHER-PROMPT.md
+templates/CODEX-START-PROMPT.template.md -> TEMPLATE-CODEX-MODEB-TIER3-START.md
+templates/SHORT-CLAUDE-STARTUP-PROMPT.template.md -> TEMPLATE-CLAUDE-CODE-WATCHER-START.md
+templates/TASK-CHAIN-PROMPTS.md -> TASK-CHAIN-PROMPTS.md
 ```
 
-如果项目没有 agent instruction 文件，先创建一个，再启用 workflow。
+替换所有占位符。不要复制其他项目的 run id、task id、report、review、state、
+heartbeat 或历史。
 
-## 2. 创建协作目录
+## 2. 验证 Reset
 
 ```text
-docs/operations/agent-coordination/
-  auto/
-  inbox/
-  reports/
-  codex-reviews/
+BELL.protocol == CURRENT_ONLY_KISS_V1
+BELL.seq == CURRENT.md SEQ
+holder=codex
+status=IDLE
+taskId=null
+payloadType=RESET_PENDING
 ```
 
-## 3. 选择唯一名称
+## 3. 启动 Codex
 
-每个 run 都必须使用全局唯一名称。
+粘贴项目化后的 Codex start prompt。Codex 应该只发布一张新的安全 Claude task
+packet，先写 `CURRENT.md`，再写 `BELL.json`。
 
-```text
-projectSlug = my-project
-runSlug     = docs-sweep-b01
-runId       = mode-b-my-project-docs-sweep-b01
-automation  = mode-b-my-project-docs-sweep-b01-monitor
-taskId      = TASK-MY-PROJECT-B01-T01-DOCS-SWEEP
-```
+## 4. 启动 Claude Code
 
-见 [naming.md](naming.md)。
+当 Codex 输出 `holder=claude/status=READY_FOR_CLAUDE` 后，把短 Claude watcher
+prompt 粘贴进 Claude Code。Claude 必须保持 60 秒 watcher，不写 idle heartbeat 文件。
 
-## 4. 添加协作文件
+## 5. Review Loop
 
-复制并改写：
-
-```text
-templates/AUTO-README.template.md -> docs/operations/agent-coordination/auto/README.md
-templates/BELL.initial.json       -> docs/operations/agent-coordination/auto/BELL.json
-templates/STATE.initial.json      -> docs/operations/agent-coordination/auto/state.json
-templates/MESSAGES.initial.ndjson -> docs/operations/agent-coordination/auto/messages.ndjson
-templates/BOARD.template.md       -> docs/operations/agent-coordination/auto/BOARD.md
-templates/TASK-CARD.template.md   -> docs/operations/agent-coordination/inbox/<taskId>.md
-```
-
-也可以使用中文模板：
-
-```text
-templates/zh-CN/
-```
-
-## 5. 从低风险任务开始
-
-适合第一批的任务：
-
-- read-only source sweep
-- docs-only inventory
-- test-command inventory
-- guard inventory
-- current-status report
-
-不适合第一批：
-
-- schema changes
-- migrations
-- dependency install
-- deployment
-- external APIs
-- secrets
-- commits and pushes
-- broad refactors
-
-## 6. 启动 Codex Heartbeat
-
-使用 [../../templates/zh-CN/CODEX-HEARTBEAT-PROMPT.template.md](../../templates/zh-CN/CODEX-HEARTBEAT-PROMPT.template.md)，为这一个 run 创建 Codex heartbeat automation。
-heartbeat 必须先读 `BELL.json`，再用 `messages.ndjson` 和 `state.json` 校验。
-
-## 7. 手动启动 Claude Code
-
-Human owner 手动在目标项目目录打开 Claude Code，然后粘贴 [../../templates/zh-CN/SHORT-CLAUDE-STARTUP-PROMPT.template.md](../../templates/zh-CN/SHORT-CLAUDE-STARTUP-PROMPT.template.md) 改写后的短 prompt。
-
-不要让 Codex 启动、停止、kill 或重启 Claude Code。
-
-## 8. 停在 Owner Review
-
-有限批次完成后，Codex 设置：
-
-```text
-OWNER_REVIEW_REQUIRED
-```
-
-owner 决定是否开启下一个有限批次。
+当 Claude 返回 `holder=codex/status=READY_FOR_CODEX_REVIEW`，Codex 先 review
+report 和 diff，然后再 accept、返回同一任务内的有限 fix、或发布下一张单卡。

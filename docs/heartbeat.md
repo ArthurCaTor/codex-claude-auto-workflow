@@ -1,33 +1,39 @@
-# Heartbeat
+# Codex Heartbeat
 
-## Codex Heartbeat
+The Codex app heartbeat is a wake-up mechanism. It is not communication truth.
+The active truth is only matching `BELL.json + CURRENT.md`.
 
-On each heartbeat, Codex:
+## Isolation
 
-1. Reads `BELL.json` first.
-2. Verifies the bell against `messages.ndjson` and `state.json`.
-3. Reconciles projections if needed.
-4. Reads `BOARD.md`.
-5. If `holder = "codex"` and status is `READY_FOR_CODEX_REVIEW`, reads the Claude report and local
-   diff.
-6. Verifies allowed files and stop lines.
-7. Runs safe validation.
-8. Writes a Codex review.
-9. Appends one Codex event.
-10. Updates `BELL.json`, `state.json`, and `BOARD.md`.
-11. Stops or reports status to the owner.
+One Codex heartbeat thread monitors one project root.
 
-## Claude Watcher
+Do not create a dual-project monitor. If the current Codex thread already has
+another active heartbeat, keep the new monitor paused and use a dedicated Codex
+thread for the new project.
 
-Claude Code:
+## Wake Logic
 
-1. Reads `BELL.json`, then `messages.ndjson`, `state.json`, and `BOARD.md`.
-2. If `holder` is not `claude`, waits and rereads.
-3. If `holder = "claude"` and status is `READY_FOR_CLAUDE`, reads the active task card.
-4. Executes only that card.
-5. Writes the report.
-6. Appends one `REPORT_READY`, `OWNER_DECISION_REQUIRED`, `BLOCKED`, or
-   `ERROR` event.
-7. Updates `BELL.json` and projections to `READY_FOR_CODEX_REVIEW` with
-   `holder = "codex"`.
-8. Waits for Codex review.
+On each wake:
+
+```text
+1. Read BELL.json.
+2. Read CURRENT.md.
+3. Require BELL.seq == CURRENT.SEQ.
+4. Derive holder/status.
+5. Act only for the current signal.
+```
+
+`READY_FOR_CODEX_REVIEW` means review first. Codex must inspect the report,
+local diff, allowed files, and validation before accepting, requesting a bounded
+fix, or publishing another card.
+
+`IDLE` means Codex may publish exactly one safe bounded card.
+
+`READY_FOR_CLAUDE` means Claude owns the turn; Codex waits.
+
+## Forbidden By Default
+
+Do not start, stop, kill, or restart Claude Code. Do not install dependencies,
+touch schema or migrations, deploy, use secrets, call external APIs, commit,
+push, merge, open PRs, publish releases, or move/delete audit evidence unless
+the owner explicitly authorizes that boundary.

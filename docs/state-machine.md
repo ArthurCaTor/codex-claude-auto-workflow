@@ -1,49 +1,38 @@
 # State Machine
 
-Allowed states:
+CURRENT_ONLY_KISS_V1 keeps the active state small.
 
 ```text
-IDLE
+RESET_PENDING / IDLE
+  Codex may publish one TASK_READY packet.
+
 READY_FOR_CLAUDE
-CLAUDE_RUNNING
+  Claude may execute the one task named by CURRENT.md.
+
 READY_FOR_CODEX_REVIEW
-CODEX_REVIEWING
-ACCEPTED
+  Codex must review before any next task.
+
 NEEDS_FIX
-BLOCKED
-OWNER_DECISION_REQUIRED
-OWNER_REVIEW_REQUIRED
-ERROR
+  Codex may return the same active task to Claude only inside allowed files and
+  retry budget.
+
+OWNER_DECISION_REQUIRED / BLOCKED
+  Stop for owner.
 ```
 
-Normal path:
+Normal flow:
 
 ```text
-IDLE
--> holder=claude / READY_FOR_CLAUDE
--> holder=claude / CLAUDE_RUNNING
--> holder=codex  / READY_FOR_CODEX_REVIEW
--> holder=codex  / CODEX_REVIEWING
--> ACCEPTED
--> holder=codex or arthur / OWNER_REVIEW_REQUIRED
+codex/IDLE
+  -> codex writes CURRENT TASK_READY
+  -> codex writes BELL holder=claude/READY_FOR_CLAUDE
+  -> claude executes one card
+  -> claude writes report
+  -> claude rechecks same seq/taskId
+  -> claude writes CURRENT REPORT_READY
+  -> claude writes BELL holder=codex/READY_FOR_CODEX_REVIEW
+  -> codex reviews
+  -> accept, bounded fix, next one-card packet, or owner stop
 ```
 
-Optional report-only fix path:
-
-```text
-CODEX_REVIEWING
--> holder=claude / READY_FOR_CLAUDE  (same task, report-only fix, budgeted)
--> holder=claude / CLAUDE_RUNNING
--> holder=codex  / READY_FOR_CODEX_REVIEW
-```
-
-Manual recovery states:
-
-```text
-OWNER_REVIEW_REQUIRED
-OWNER_DECISION_REQUIRED
-BLOCKED
-ERROR
-```
-
-Only the human owner exits manual recovery states.
+There is no unbounded backlog. Claude never self-advances.

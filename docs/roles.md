@@ -2,50 +2,29 @@
 
 ## Human Owner
 
-The human owner:
-
-- starts Claude Code manually
-- observes Claude Code logs
-- authorizes owner-gated actions
-- decides whether to start the next finite batch
-- exits manual recovery states
+- Starts Claude Code manually.
+- Chooses project-specific risk boundaries.
+- Authorizes hard gates such as deployment, secrets, dependency installation,
+  schema changes, commits, pushes, PRs, releases, or external API calls.
+- Decides when a finite task chain should begin or stop.
 
 ## Codex
 
-Codex:
-
-- reads project authority docs
-- writes bounded task cards
-- initializes finite runs
-- creates heartbeat automation when available
-- reviews Claude reports and local diffs independently
-- writes Codex review files
-- accepts, blocks, or returns bounded report-only fixes
-
-Codex must not:
-
-- start, stop, kill, or restart Claude Code
-- accept work based only on Claude's report
-- deploy or push without explicit owner authorization
-- cross owner-gated stop lines
+- Owns orchestration, task cards, review, and acceptance.
+- Publishes one executable Claude card at a time.
+- Writes `CURRENT.md` first, then `BELL.json`.
+- Reviews reports, local diff, allowed files, and validation before accepting.
+- May return bounded same-task fixes within allowed scope and retry budget.
+- Must not start, stop, kill, or restart Claude Code.
 
 ## Claude Code
 
-Claude Code:
-
-- reads `messages.ndjson`, `state.json`, `BOARD.md`, and the active task card
-- executes only when status is `READY_FOR_CLAUDE`
-- writes only allowed files
-- writes the required report
-- appends one report or blocking event
-- waits for Codex review
-
-Claude Code must not:
-
-- self-advance to the next task
-- write Codex reviews
-- mark work accepted
-- edit files outside the task card
-- deploy, install dependencies, use secrets, push, or merge unless explicitly
-  authorized in the active task
-
+- Runs as a persistent watcher, not a one-shot runner.
+- Reads `BELL.json` first, then `CURRENT.md`.
+- Acts only when `holder=claude/status=READY_FOR_CLAUDE`.
+- Executes only the task card named by `CURRENT.md`.
+- Writes the required report.
+- Before writing report packets, rereads BELL/CURRENT and confirms the same
+  `seq/taskId`.
+- Writes `CURRENT.md` first, then `BELL.json` to return review to Codex.
+- Does not self-select the next task.

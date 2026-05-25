@@ -1,114 +1,71 @@
 # 工作流
 
-Codex-Claude Auto Workflow 是一个自动化文件心跳工作流，用项目文件协调 Codex 和 Claude Code。
-
-Codex 负责规划、任务边界、heartbeat 审查和验收。Claude Code 监听协作文件，执行唯一 active task card，并写回报告。Human owner 手动启动 Claude Code，并授权 owner-gated 动作。
-
-## 协作文件
+CURRENT_ONLY_KISS_V1 通过两个当前文件，协调一个 Codex session 和一个手动启动的
+Claude Code watcher。
 
 ```text
-docs/operations/agent-coordination/auto/
-  BELL.json
-  README.md
-  messages.ndjson
-  state.json
-  BOARD.md
+BELL.json  = 极小机器轮次信号
+CURRENT.md = 唯一当前详细通信包
+state.json = projection/debug
+BOARD.md   = projection/debug
 ```
 
-## Truth 和 Projection
+历史日志、旧卡、旧 report、旧 review、terminal recap、timestamp、event id、
+file mtime 都只是 legacy/debug，不能决定当前真相。
+
+## 读取顺序
 
 ```text
-BELL.json       = shared turn signal: who acts now
-messages.ndjson = append-only audit truth
-state.json      = machine-readable projection
-BOARD.md        = human-readable projection
+1. 读 BELL.json。
+2. 读 CURRENT.md。
+3. 要求 BELL.json.seq == CURRENT.md SEQ。
+4. 只有 CURRENT.md 指向 task card 或 report 时才读它。
 ```
 
-日常自动化先读 `BELL.json`，再用 `messages.ndjson` 和 `state.json` 校验。
-如果文件之间不一致，以 `messages.ndjson` 为准，先 resync projection，再行动。
+如果文件不可读、格式错误、疑似半写、缺必需字段、或 seq 不一致，报告
+`PROJECTION_DRIFT`，不要行动。
 
-## 共享铃铛
-
-`BELL.json` 让协作保持简单：
+## 信号
 
 ```text
-holder=claude -> Claude Code 干活
-holder=codex  -> Codex review 或准备下一个有限任务
-holder=arthur -> human owner 决策
+holder=claude / READY_FOR_CLAUDE
+  Claude 执行 CURRENT.md 指向的唯一 task。
+
+holder=codex / READY_FOR_CODEX_REVIEW
+  Codex review report、diff、scope、validation。
+
+holder=codex / IDLE
+  Codex 可以发布一张安全有边界 task card。
+
+holder=arthur 或 hard-gate status
+  停下等待 owner 决策。
 ```
 
-见 [bell.md](bell.md)。
+## 写入顺序
 
-## Message Log
-
-`messages.ndjson` 中每一行都是一个 JSON object。
-
-最小字段：
-
-```json
-{
-  "id": "2026-01-01T00:00:00Z-codex-my-project-b01-task-ready",
-  "from": "codex",
-  "to": "claude",
-  "projectSlug": "my-project",
-  "runId": "mode-b-my-project-docs-sweep-b01",
-  "taskId": "TASK-MY-PROJECT-B01-T01-DOCS-SWEEP",
-  "type": "TASK_READY",
-  "summary": "Task card ready.",
-  "createdAt": "2026-01-01T00:00:00Z"
-}
-```
-
-常见事件类型：
+Codex 发布任务或 fix packet：
 
 ```text
-INIT
-TASK_READY
-CLAUDE_STARTED
-REPORT_READY
-CODEX_REVIEW_STARTED
-REVIEW_ACCEPTED
-REVIEW_NEEDS_FIX
-REVIEW_BLOCKED
-OWNER_DECISION_REQUIRED
-OWNER_REVIEW_REQUIRED
-BOARD_UPDATED
-HEARTBEAT
-ERROR
+1. next seq = current BELL.seq + 1
+2. 先覆盖 CURRENT.md
+3. 再覆盖 BELL.json，使用同一个 seq
+4. state.json / BOARD.md 只作为 projection 更新
 ```
 
-## 写入规则
+Claude 报告完成：
 
-- 不要修改 `messages.ndjson` 的旧行。
-- 如果需要修正，追加 correction event，不要改历史。
-- 尽量用 temp file 加 atomic rename 更新 `state.json` 和 `BOARD.md`。
-- 每个 actor 每次 heartbeat 最多追加一个 action event。
-
-## 有限 Run 规则
-
-每个 run 都声明：
-
-```json
-{
-  "batch": {
-    "enabled": true,
-    "maxTasks": 1,
-    "completedTasks": 0,
-    "stopAfterMaxTasks": true,
-    "terminalStateAfterBatch": "OWNER_REVIEW_REQUIRED"
-  }
-}
+```text
+1. 写 required report
+2. 重读 BELL.json 和 CURRENT.md
+3. 确认 holder=claude/status=READY_FOR_CLAUDE 且仍是同一 seq/taskId
+4. 先覆盖 CURRENT.md 为 REPORT_READY
+5. 再覆盖 BELL.json 为 holder=codex / READY_FOR_CODEX_REVIEW
+6. 继续 60 秒 watcher
 ```
 
-不授权无限 backlog。
+## 有限自动化
 
-## 自动化规则
+Codex 每次只能发布一张 task card。如果 owner 提供既定任务链，Codex 只把这条链拆成逐张 Claude card，不重新生成整套蓝图，也不让 Claude 自选任务。
 
-这个工作流用于在一个有限 run 内形成低人工干预的自动流：
-
-- Claude Code 可以持续监听当前 active task 的 `BELL.json`。
-- 当 `BELL.json.holder = "codex"` 时，Codex heartbeat 可以独立审查 Claude 报告和本地 diff。
-- review 未通过时，只能在有限预算内回到 Claude 做 report-only 修复。
-- 达到批次上限后，run 必须停在 `OWNER_REVIEW_REQUIRED`。
-
-自动化不等于无人负责。schema 变更、依赖安装、部署、commit、push、secrets、外部 API 调用等高风险动作，都必须由 owner 显式授权。
+`READY_FOR_CODEX_REVIEW` 必须先 review，不能绕过 review 直接发下一张。
+`NEEDS_FIX` 只能在同一 active task、allowed files 和 retry budget 内回给 Claude。

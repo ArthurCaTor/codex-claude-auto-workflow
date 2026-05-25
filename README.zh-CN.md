@@ -4,7 +4,7 @@
 
 语言：[English](README.md) | [简体中文](README.zh-CN.md)
 
-Codex-Claude Auto Workflow 把手动来回复制粘贴的协作方式，变成一个有边界、可审计、低人工干预的自动流：
+Codex-Claude Auto Workflow 把手动来回复制粘贴的协作方式，变成一个有边界、低人工干预的自动流：
 
 ```text
 Codex       = 规划者、项目经理、任务卡作者、审查者
@@ -13,80 +13,68 @@ Human owner = 风险、范围、发布动作的授权关口
 Files       = 共享协作状态
 ```
 
-默认协作模型是 **Shared Bell Workflow v2**：
+当前标准是 **CURRENT_ONLY_KISS_V1**。
 
 ```text
-BELL.json holder=claude  -> Claude Code 干活
-BELL.json holder=codex   -> Codex review 或准备下一个有限任务
-BELL.json holder=arthur  -> human owner 决策
+BELL.json  = 极小机器信号：现在轮到谁
+CURRENT.md = 唯一当前详细通信包
+state.json = 机器可读 projection/debug
+BOARD.md   = 人类可读 projection/debug
 ```
 
-这个设计故意保持简单。只要一个 actor 需要另一个 actor 处理事情，就必须用明确的
-`holder` 和 `status` 交出铃铛；workflow 不从自然语言 summary、report、
-review 或 terminal recap 推断下一步该谁干活。
+`messages.ndjson`、旧 task card、旧 report、旧 review、terminal recap、
+timestamp、event id、file mtime 都只是 legacy/debug，不能决定当前任务、新旧顺序或该谁行动。
 
-这个工作流适合这样的场景：你希望 Codex 负责项目管理、任务拆分和验收，同时让 Claude Code 在可见终端里执行实现、文档、验证或审计任务。它可以让有限任务批次自动流转，但仍然在 owner gate 停下等待人工授权。
+## 为什么这样设计
 
-## 目的
-
-这个工作流的目标，是让多 Agent 开发更安全、更自动化，也更省心。
-
-没有它时，owner 往往要在 Codex 和 Claude Code 之间手动搬运消息：
+最可靠的模型就是一个铃铛：
 
 ```text
-Owner 让 Codex 做计划
-Owner 把 Codex 指令复制给 Claude Code
-Claude Code 执行
-Owner 把 Claude 报告复制回 Codex
-Codex 审查
-Owner 把下一轮修复或任务再复制给 Claude Code
+holder=claude / READY_FOR_CLAUDE       -> Claude Code 干活
+holder=codex  / READY_FOR_CODEX_REVIEW -> Codex review
+holder=codex  / IDLE                   -> Codex 发一张安全任务卡
+holder=arthur 或 hard gate             -> owner 决策
 ```
 
-Codex-Claude Auto Workflow 用一个小型文件心跳状态机，替代大部分手动转发：
+只要一个 actor 需要另一个 actor 处理事情，就用明确的 `holder` 和 `status`
+交出铃铛。详细信息放在 `CURRENT.md`、task card、report、review 里。
 
-```text
-Codex 写一个有边界的任务卡
-Codex 初始化一个有限 run
-Claude Code 持续监听协作文件
-Claude Code 只执行当前 active task
-Claude Code 写报告并追加事件
-Codex heartbeat 审查报告和本地 diff
-Codex 接受、阻塞，或返回一个有限的 report-only 修复
-run 停在 owner review
-```
-
-重点是“有限自动流”，不是无限自治。Codex 和 Claude 可以在一个有限批次内自动推进，甚至可以自动完成有限次数的 report-only 修复循环；但部署、 secrets、schema 变更、依赖安装、commit、push 和范围扩张仍然必须由 owner 显式授权。
+这样可以避免 Codex 和 Claude Code 因为复杂信号、旧 summary、terminal recap
+或历史日志而错过对方、互相死锁。
 
 ## 它能做什么
 
-- 跑文档审计。
-- 跑源码扫描和 inventory 任务。
+- 跑文档审计和源码扫描。
 - 把很窄的实现切片交给 Claude Code。
 - 让 Codex 负责任务排序、边界控制和验收。
-- 保留 handoff、report、review、owner gate 的持久审计轨迹。
-- 通过唯一 run/task 名称，支持多个项目同时运行。
-- 把人工复制粘贴降低到：一个 Codex 启动 prompt，加一个 Claude Code 短启动 prompt。
+- 按既定任务链逐卡执行，每次只给 Claude 一张卡。
+- Codex review 未通过时，把同一任务内的有限 fix loop 自动回给 Claude。
+- 多项目并行时，通过项目专属名称和“一项目一 Codex heartbeat thread”避免混乱。
+- 把人工复制粘贴降低到一个 Codex 启动 prompt 和一个 Claude watcher prompt。
 
 ## 它不做什么
 
 - 它不是 daemon 或托管服务。
-- 它不会启动或控制 Claude Code 进程。
+- 它不会启动、停止或控制 Claude Code。
 - 它不会替代项目自己的架构规则。
-- 它默认不授权部署、secrets、依赖安装、commit、push、migration 或外部 API 调用。
-- 它不允许 Claude Code 自行推进一个无限 backlog。
+- 它默认不授权部署、secrets、依赖安装、commit、push、migration、schema 变更或外部 API 调用。
+- 它不允许 Claude Code 自己选择下一张任务卡。
 
 ## 工作方式
 
-每个项目会得到一个小型协作目录：
+每个项目创建：
 
 ```text
 docs/operations/agent-coordination/
   auto/
     BELL.json
-    README.md
-    messages.ndjson
+    CURRENT.md
     state.json
     BOARD.md
+    README.md
+    COMMUNICATION_ASCII_GATE.md
+    CODEX-HEARTBEAT-PROMPT.md
+    CLAUDE-WATCHER-PROMPT.md
   inbox/
     TASK-*.md
   reports/
@@ -95,55 +83,34 @@ docs/operations/agent-coordination/
     TASK-*-codex-review.md
 ```
 
-核心 truth 规则：
+唯一 freshness gate：
 
 ```text
-BELL.json       = shared turn signal: who acts now
-messages.ndjson = append-only audit truth
-state.json      = machine-readable projection
-BOARD.md        = human-readable projection
+BELL.json.seq == CURRENT.md SEQ
 ```
 
-日常自动化先读 `BELL.json`，再用 `messages.ndjson` 和 `state.json` 校验。
-如果文件之间不一致，以 `messages.ndjson` 为准，先 resync projection，再行动。
+如果任一文件不可读、格式错误、疑似半写、缺必需字段、或 seq 不一致，报告
+`PROJECTION_DRIFT`，不要行动。
 
 ## 一个 Prompt 启动
 
-在新项目里启动整套流程时，打开该项目里的 Codex，然后粘贴：
+在目标项目里打开 Codex，然后粘贴：
 
 [docs/zh-CN/one-prompt-start.md](docs/zh-CN/one-prompt-start.md)
 
-Codex 会：
-
-1. 读取目标项目规则和 git 状态。
-2. 选择项目专属名称。
-3. 创建协作目录和文件。
-4. 创建第一个低风险任务卡。
-5. 准备 Codex heartbeat prompt。
-6. 输出一段简短 Claude Code 启动 prompt，方便 owner 复制到 Claude Code。
-7. 在执行前停下，向 owner 请求授权。
+Codex 会准备本地协作文件，并输出一段简短 Claude Code watcher prompt。
+Claude 之后保持 60 秒 watcher，只在 `holder=claude/status=READY_FOR_CLAUDE`
+时执行。
 
 ## 关键保证
 
-- 每个 run 都是有限的。
-- 每个 task 都有 allowed files、forbidden scope、validation、report path 和 stop conditions。
-- Claude Code 只执行一个 active task card。
-- Codex 独立审查 Claude 报告和本地 diff。
+- 一个 Codex thread 只监控一个项目。
+- Codex 发布任务时先写 `CURRENT.md`，再写 `BELL.json`。
+- Claude 写完 report 后，先重读 BELL/CURRENT，确认自己仍持有同一个
+  `seq/taskId`，再先写 `CURRENT.md`、后写 `BELL.json`。
+- `READY_FOR_CODEX_REVIEW` 是 review gate，不能绕过 review 直接发下一张卡。
+- 每个任务都有 allowed files、forbidden scope、validation 和 stop conditions。
 - owner-gated 动作必须停下等待人工授权。
-- review 未通过时，可以在同一任务内进入有限的 report-only fix loop。
-- 禁止使用通用 automation 名称，因此多个项目可以安全并行运行。
-
-## 快速开始
-
-阅读：
-
-- [docs/zh-CN/one-prompt-start.md](docs/zh-CN/one-prompt-start.md)
-- [docs/zh-CN/quickstart.md](docs/zh-CN/quickstart.md)
-- [docs/zh-CN/workflow.md](docs/zh-CN/workflow.md)
-- [docs/zh-CN/bell.md](docs/zh-CN/bell.md)
-- [docs/zh-CN/naming.md](docs/zh-CN/naming.md)
-
-然后复制并改写 [templates/zh-CN/](templates/zh-CN/) 里的模板。
 
 ## 仓库结构
 
@@ -160,20 +127,23 @@ docs/
   report-only-fix-loop.md
   roles.md
   state-machine.md
+  task-chain-prompts.md
 examples/
   minimal-run/
 templates/
   zh-CN/
   AUTO-README.template.md
   BELL.initial.json
+  CURRENT.initial.md
   BOARD.template.md
+  COMMUNICATION_ASCII_GATE.template.md
   CODEX-HEARTBEAT-PROMPT.template.md
-  CODEX-REVIEW.template.md
+  CLAUDE-WATCHER-PROMPT.template.md
   CODEX-START-PROMPT.template.md
   SHORT-CLAUDE-STARTUP-PROMPT.template.md
   STATE.initial.json
-  MESSAGES.initial.ndjson
   TASK-CARD.template.md
+  TASK-CHAIN-PROMPTS.md
 ```
 
 ## License

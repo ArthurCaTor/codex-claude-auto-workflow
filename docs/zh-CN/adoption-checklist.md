@@ -1,47 +1,21 @@
-# 接入清单
+# 迁移检查清单
 
-## Project Authority
-
-- [ ] 读取 project instructions。
-- [ ] 读取 README 和 architecture docs。
-- [ ] 读取 package scripts 和 validation commands。
-- [ ] 检查 `git status --short`。
-- [ ] 记录 dirty worktree risks。
-
-## Naming
-
-- [ ] 定义 `projectSlug`。
-- [ ] 定义 `runSlug`。
-- [ ] 定义 `runId`。
-- [ ] 定义 automation name。
-- [ ] 定义 task id。
-- [ ] 确认没有使用 generic names。
-
-## Coordination Files
-
-- [ ] 创建 `auto/README.md`。
+- [ ] 替换 `<PROJECT_ROOT>`、`<PROJECT_NAME>`、`<PROJECT_SLUG>`、
+      `<RUN_ID>`、`<MONITOR_ID>` 和所有 task/report/review 路径。
 - [ ] 创建 `auto/BELL.json`。
-- [ ] 创建 `auto/messages.ndjson`。
+- [ ] 创建 `auto/CURRENT.md`。
 - [ ] 创建 `auto/state.json`。
 - [ ] 创建 `auto/BOARD.md`。
-- [ ] 创建 `inbox/`。
-- [ ] 创建 `reports/`。
-- [ ] 创建 `codex-reviews/`。
-
-## First Run
-
-- [ ] 选择一个低风险 first task。
-- [ ] 设置 `maxTasks = 1`。
-- [ ] 设置 `maxReportFixRounds = 2`。
-- [ ] 写明 allowed files。
-- [ ] 写明 forbidden scope。
-- [ ] 写明 validation。
-- [ ] 写明 report path。
-- [ ] 为 first active task 设置 `BELL.json.holder = "claude"`。
-
-## Owner Gate
-
-- [ ] owner 授权有限 run。
-- [ ] owner 手动启动 Claude Code。
-- [ ] Codex heartbeat 不控制 Claude process。
-- [ ] run 停在 `OWNER_REVIEW_REQUIRED`。
+- [ ] 创建 `auto/README.md`。
+- [ ] 创建 `auto/COMMUNICATION_ASCII_GATE.md`。
+- [ ] 创建 Codex 和 Claude prompt 文件。
+- [ ] 不为 active turn truth 创建 `messages.ndjson`。
+- [ ] 初始化 reset-pending：`holder=codex/status=IDLE/taskId=null`。
+- [ ] 确认 `BELL.seq == CURRENT.md SEQ`。
+- [ ] 确认 Claude watcher 使用强制 60 秒循环。
+- [ ] 确认等待中的 Claude 不写 idle heartbeat 文件。
+- [ ] 确认 Claude 写 report packet 前会重读并确认同一 `seq/taskId`。
+- [ ] 确认 Codex 在 `READY_FOR_CODEX_REVIEW` 时先 review，再调度。
+- [ ] 确认一个项目只使用一个 Codex heartbeat thread。
+- [ ] 确认没有其他项目名残留。
+- [ ] 运行 `git diff --check`。

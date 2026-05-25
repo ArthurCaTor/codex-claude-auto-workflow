@@ -1,48 +1,72 @@
-# Codex-Claude Auto Workflow Coordination
+# Mode B Current-Only Coordination Protocol
 
-STATUS: TEMPLATE - adapt before use.
+STATUS: ACTIVE for `<projectName>` after placeholder replacement.
 
 ## Purpose
 
-Codex and Claude Code coordinate through files as an automated, low-touch,
-finite workflow. The human owner starts Claude Code manually and authorizes
-owner-gated actions.
+This directory coordinates one Codex session and one manually started Claude
+Code session. Codex must not start, stop, kill, or restart Claude Code.
 
-## Truth / Projection
+Protocol: `CURRENT_ONLY_KISS_V1`.
 
-```text
-BELL.json       = shared turn signal
-messages.ndjson = append-only audit truth
-state.json      = machine-readable projection
-BOARD.md        = human-readable projection
-```
-
-Read `BELL.json` first, then verify it against `messages.ndjson` and
-`state.json`. If projections disagree with the append-only log, resync before
-acting.
-
-## Shared Bell
+## Active Truth
 
 ```text
-holder=claude -> Claude Code works
-holder=codex  -> Codex reviews or prepares the next bounded task
-holder=arthur -> the owner decides
+BELL.json  = small machine turn signal and seq pointer
+CURRENT.md = only active detailed communication packet
+state.json = machine-readable projection
+BOARD.md   = human-readable projection
 ```
 
-Do not create `CLAUDE_SIGNAL.json`, `CODEX_SIGNAL.json`, or other parallel
-signal files. One shared bell is the turn signal.
+`messages.ndjson`, old task cards, old reports, old reviews, terminal recaps,
+timestamps, event ids, and file mtimes are legacy/debug/audit context only.
+They must not decide current turn order, freshness, or latest task.
 
-## State Machine
+## Read Order
 
-See `docs/state-machine.md` and `docs/bell.md` in the Codex-Claude Auto
-Workflow project.
+```text
+1. BELL.json
+2. CURRENT.md
+3. state.json or BOARD.md only as projection/debug if needed
+4. active task card or report only if named by CURRENT.md
+```
 
-## Current Run
+Freshness is valid only when:
 
-- Project slug: `<projectSlug>`
-- Run id: `mode-b-<projectSlug>-<runSlug>`
-- Active task: `<task-id>`
-- Bell holder: `claude`
-- Automation: `mode-b-<projectSlug>-<runSlug>-monitor`
-- Max tasks: `1`
-- Max report-only fix rounds: `2`
+```text
+BELL.json.seq == CURRENT.md SEQ
+```
+
+If either file is unreadable, partially written, malformed, missing required
+fields, or seq-mismatched, neither agent may act.
+
+## Signals
+
+```text
+CLAUDE_WORK       = holder=claude / READY_FOR_CLAUDE / seq matches
+CODEX_REVIEW      = holder=codex / READY_FOR_CODEX_REVIEW / seq matches
+CODEX_SCHEDULE    = holder=codex / IDLE / seq matches
+OWNER_OR_BLOCKED  = holder=arthur or hard-gate status
+```
+
+## Writer Order
+
+Codex publishes task/review/fix packets:
+
+```text
+1. choose next seq = current BELL.seq + 1
+2. overwrite CURRENT.md with seq N
+3. overwrite BELL.json with seq N and holder/status/taskId
+4. update state.json and BOARD.md as projections
+```
+
+Claude reports:
+
+```text
+1. write the required report
+2. reread BELL.json and CURRENT.md
+3. confirm same seq/taskId and holder=claude/status=READY_FOR_CLAUDE
+4. overwrite CURRENT.md with next-seq REPORT_READY
+5. overwrite BELL.json with same seq, holder=codex, status=READY_FOR_CODEX_REVIEW
+6. continue the hard 60-second watcher loop
+```

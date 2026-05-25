@@ -1,41 +1,28 @@
-# Codex 启动 Prompt
-
-这段和 `docs/zh-CN/one-prompt-start.md` 是同一个启动流程，放在这里方便复制到其他项目。
+# Codex Start Prompt
 
 ```text
-在这个项目中初始化 Codex-Claude Auto Workflow。
+在本项目中用 CURRENT_ONLY_KISS_V1 初始化 Codex-Claude Auto Workflow。
 
-不要立即实现业务功能。先学习这个项目，并准备一个有限的 Codex 管理 / Claude Code 执行 workflow。
+不要立刻实现业务功能。
 
-使用这些规则：
-- Codex 负责 planning、management 和 review。
-- Claude Code 只执行一个 active bounded task card。
-- human owner 手动启动 Claude Code，并授权 owner-gated actions。
-- BELL.json 是共享铃铛：holder=claude 表示 Claude 干活，
-  holder=codex 表示 Codex review 或准备下一个有限任务，
-  holder=arthur 表示需要 owner 决策。
-- workflow 应该在一个有限批次内以自动化、低人工干预的 file-heartbeat loop 运行。
-- messages.ndjson 是 append-only coordination truth。
-- state.json 和 BOARD.md 是 projections。
-- 每个 run 都是有限的，并停在 OWNER_REVIEW_REQUIRED。
-- 名称必须包含 projectSlug 和 runSlug。
-- failed reviews 只能作为 bounded report-only fix loop 自动回给 Claude。
+先读取项目 instructions、当前 docs 和 git status，然后在
+docs/operations/agent-coordination/auto/ 下创建或更新本地协作文件。
 
-先读取 project instructions、README、architecture docs 如果存在、package scripts 和 git status。
+规则：
+- active communication truth 只有 BELL.json + CURRENT.md
+- 任何人行动前 BELL.seq 必须等于 CURRENT.md SEQ
+- BELL.json 是极小机器信号
+- CURRENT.md 是唯一当前详细通信包
+- state.json 和 BOARD.md 只是 projections/debug
+- messages.ndjson、旧 task card、旧 report、旧 review、terminal recap、
+  timestamp、event id、file mtime 都只是 legacy/debug
+- 文件不可读、半写、缺字段或 seq 不一致时，报告 PROJECTION_DRIFT，不行动
+- Codex 发布任务时先写 CURRENT.md，再写 BELL.json
+- Claude 报告时先写 report，再重读 BELL/CURRENT 确认同一 seq/taskId，然后先写 CURRENT.md、再写 BELL.json
+- Claude 是持续 60 秒 watcher，不自选下一张 task
+- READY_FOR_CODEX_REVIEW 必须先 review，Codex 不能直接发布下一张
 
-创建：
-- docs/operations/agent-coordination/auto/README.md
-- docs/operations/agent-coordination/auto/BELL.json
-- docs/operations/agent-coordination/auto/messages.ndjson
-- docs/operations/agent-coordination/auto/state.json
-- docs/operations/agent-coordination/auto/BOARD.md
-- docs/operations/agent-coordination/inbox/
-- docs/operations/agent-coordination/reports/
-- docs/operations/agent-coordination/codex-reviews/
+初始化 reset-pending：holder=codex/status=IDLE/taskId=null。
 
-生成一个低风险 first task card、一个 Codex heartbeat prompt，以及一段简短可复制的 Claude Code startup prompt。
-
-禁止启动/停止 Claude Code、deploy、install dependencies、call external APIs、use secrets、change schema/migrations、commit、push、merge，或继续进入业务实现。
-
-准备完成后停下，并在 first run 前请求 owner 授权。
+最后输出文件清单、当前 seq、holder/status/taskId、heartbeat 状态、验证结果，以及一段简短 Claude Code watcher prompt。
 ```

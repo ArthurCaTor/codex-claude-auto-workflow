@@ -1,88 +1,47 @@
-# <TASK-ID>
-
-STATUS: READY_FOR_CLAUDE
+# <task-id>
 
 ## Goal
 
-<One bounded outcome.>
-
-## Finite Batch Boundary
-
-- Project slug: `<projectSlug>`
-- Run id: `mode-b-<projectSlug>-<runSlug>`
-- Max autonomous tasks in this run: `1`
-- Max report-only fix rounds inside this task: `2`
-- Active task: `<TASK-ID>`
-- No next task is pre-authorized.
-
-## Authority
-
-- Project instructions: `<path>`
-- Current docs: `<paths>`
-
-## Classification
-
-- Layer:
-- Module / area owner:
-- Boundary type:
-- Cross-module:
-- Canonical truth ownership change:
-- Docs sync required:
-- Owner decision required:
+<one bounded goal>
 
 ## Allowed Files
 
-Claude Code may edit only:
-
-- `docs/operations/agent-coordination/reports/<TASK-ID>-claude-report.md`
-- `docs/operations/agent-coordination/auto/BELL.json`
-- `docs/operations/agent-coordination/auto/messages.ndjson`
-- `docs/operations/agent-coordination/auto/state.json`
-- `docs/operations/agent-coordination/auto/BOARD.md`
+- <path>
 
 ## Forbidden Scope
 
-- Do not edit files outside allowed files.
-- Do not advance to the next task.
-- Do not deploy, install dependencies, call external APIs, use secrets, run
-  operator-only steps, commit, push, merge, or open a PR.
+- no schema or migrations
+- no dependency installation
+- no package or lockfile changes
+- no deployment or external API calls
+- no secrets
+- no commit, push, merge, or PR
+- no work outside this task card
+
+## Instructions
+
+1. Read `docs/operations/agent-coordination/auto/BELL.json`.
+2. Read `docs/operations/agent-coordination/auto/CURRENT.md`.
+3. Confirm `BELL.seq == CURRENT.SEQ`.
+4. Execute only if `holder=claude/status=READY_FOR_CLAUDE` and CURRENT names
+   this task.
+5. Write the required report.
+6. Before writing report packets, reread BELL/CURRENT and confirm the same
+   `seq/taskId`.
 
 ## Validation
 
 ```text
-<validation commands>
+<commands>
 ```
 
-## Report
-
-Write:
+## Report Path
 
 ```text
-docs/operations/agent-coordination/reports/<TASK-ID>-claude-report.md
+docs/operations/agent-coordination/reports/<task-id>-claude-report.md
 ```
 
-After writing the report, append one `REPORT_READY` event and update
-`BELL.json` and projections to `READY_FOR_CODEX_REVIEW` with
-`holder = "codex"`.
+## Stop Conditions
 
-## Bell Handoff
-
-Before working, verify:
-
-```json
-{
-  "holder": "claude",
-  "status": "READY_FOR_CLAUDE",
-  "taskId": "<TASK-ID>"
-}
-```
-
-After reporting, hand the bell back:
-
-```json
-{
-  "holder": "codex",
-  "status": "READY_FOR_CODEX_REVIEW",
-  "taskId": "<TASK-ID>"
-}
-```
+Stop and return to Codex/owner if any forbidden scope is required or if
+`PROJECTION_DRIFT` occurs.

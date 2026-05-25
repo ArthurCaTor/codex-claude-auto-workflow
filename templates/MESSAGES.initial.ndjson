@@ -1,3 +1,0 @@
-{"id":"<utc>-codex-<projectSlug>-<runSlug>-init","from":"codex","to":"owner","projectSlug":"<projectSlug>","runId":"mode-b-<projectSlug>-<runSlug>","taskId":"<task-id>","type":"INIT","summary":"Finite Mode B run initialized with maxTasks=1.","createdAt":"<utc>"}
-{"id":"<utc>-codex-<projectSlug>-<runSlug>-task-ready","from":"codex","to":"claude","projectSlug":"<projectSlug>","runId":"mode-b-<projectSlug>-<runSlug>","taskId":"<task-id>","type":"TASK_READY","summary":"Task card ready. Execute only the active task, write the report, append one REPORT_READY event, update projections to READY_FOR_CODEX_REVIEW, then wait for Codex.","createdAt":"<utc>"}
-

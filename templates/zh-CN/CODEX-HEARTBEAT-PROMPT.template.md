@@ -1,22 +1,26 @@
-# Codex Heartbeat Prompt
+# Codex Current-Only Monitor Prompt
 
-```text
-Mode B heartbeat for `<projectSlug>` run `mode-b-<projectSlug>-<runSlug>` in
-`<absolute-project-path>`。
+This heartbeat is for `<PROJECT_ROOT>` only. Do not read, schedule, review, or
+repair another project's coordination files. Do not combine projects in one
+heartbeat. If the current Codex thread already has another active project
+heartbeat, keep this monitor paused and use a dedicated Codex thread for this
+project.
 
-只监控 `<task-id>`。
+Use `CURRENT_ONLY_KISS_V1` exactly. On each wake:
 
-每次 heartbeat：
-1. 先读 auto/BELL.json。
-2. 用 auto/messages.ndjson 和 auto/state.json 校验 BELL.json。
-3. 如果 BELL.json 与 messages.ndjson/state.json 冲突，停止、报告 mismatch，并提供 resync prompt。不要根据 terminal recap 猜。
-4. 读取 BOARD.md、task card 和 project instructions。
-5. 如果 holder=codex 且 status 是 READY_FOR_CODEX_REVIEW，读取 Claude report 并检查 local diff。
-6. 验证 allowed files、stop lines 和 validation。
-7. 写 Codex review。
-8. 如果 accepted 且 maxTasks 已达到，追加 OWNER_REVIEW_REQUIRED，并更新 BELL.json/state.json/BOARD.md。
-9. 如果 NEEDS_FIX 只涉及 report/coordination files 且 reportFixLoop 预算仍可用，追加带 reviewVerdict=NEEDS_FIX 的 TASK_READY，并把 BELL.json 更新为 holder=claude、status=READY_FOR_CLAUDE。
-10. 如果问题不是 report-only，或预算耗尽，停在 OWNER_REVIEW_REQUIRED、OWNER_DECISION_REQUIRED 或 BLOCKED，并按情况把 BELL.json holder 设置为 codex 或 arthur。
+1. Read `docs/operations/agent-coordination/auto/BELL.json` first.
+2. Read `docs/operations/agent-coordination/auto/CURRENT.md` second.
+3. Require `BELL.json.seq == CURRENT.md SEQ` before acting.
+4. If either file is unreadable, malformed, partially written, missing required
+   fields, or seq-mismatched, report `PROJECTION_DRIFT` and wait.
+5. Treat only `BELL.json` plus matching `CURRENT.md` as active communication truth.
+6. Derive the current signal:
+   - `CLAUDE_WORK`: `holder=claude` and `status=READY_FOR_CLAUDE`.
+   - `CODEX_REVIEW`: `holder=codex` and `status=READY_FOR_CODEX_REVIEW`.
+   - `CODEX_SCHEDULE`: `holder=codex` and `status=IDLE`.
+   - `OWNER_OR_BLOCKED`: `holder=arthur` or a hard-gate status.
+7. `CODEX_REVIEW` is a review gate, not a scheduling shortcut.
+8. Only publish the next card after review acceptance.
 
-绝不启动/停止 Claude Code。绝不只凭 Claude report 就 accept。
-```
+Never start, stop, kill, or restart Claude Code. Do not cross owner gates unless
+the owner explicitly authorizes them.

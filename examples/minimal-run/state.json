@@ -1,37 +1,20 @@
 {
   "version": 1,
-  "mode": "B_FILE_HEARTBEAT",
+  "seq": 2,
+  "protocol": "CURRENT_ONLY_KISS_V1",
+  "mode": "B_CURRENT_ONLY",
   "projectSlug": "demo-project",
-  "runSlug": "docs-sweep-b01",
   "runId": "mode-b-demo-project-docs-sweep-b01",
   "activeTaskId": "TASK-DEMO-PROJECT-B01-T01-DOCS-SWEEP",
   "status": "READY_FOR_CLAUDE",
-  "lastEventId": "2026-01-01T00:00:01Z-codex-demo-project-docs-sweep-b01-task-ready",
+  "payloadType": "TASK_READY",
   "requiresOwnerDecision": false,
-  "updatedAt": "2026-01-01T00:00:01Z",
   "heartbeatAutomationId": "mode-b-demo-project-docs-sweep-b01-monitor",
   "bellProtocol": {
     "enabled": true,
+    "version": "CURRENT_ONLY_KISS_V1",
     "bellPath": "docs/operations/agent-coordination/auto/BELL.json",
-    "truthPath": "docs/operations/agent-coordination/auto/messages.ndjson",
-    "rule": "Read BELL.json first, then verify it against messages.ndjson and state.json before acting."
-  },
-  "batch": {
-    "enabled": true,
-    "maxTasks": 1,
-    "currentTaskIndex": 1,
-    "completedTasks": 0,
-    "stopAfterMaxTasks": true,
-    "terminalStateAfterBatch": "OWNER_REVIEW_REQUIRED",
-    "taskIds": [
-      "TASK-DEMO-PROJECT-B01-T01-DOCS-SWEEP"
-    ]
-  },
-  "reportFixLoop": {
-    "enabled": true,
-    "maxReportFixRounds": 2,
-    "currentReportFixRound": 0,
-    "stopWhenBudgetExhausted": true,
-    "scope": "same-active-task-report-and-coordination-files-only"
+    "currentPath": "docs/operations/agent-coordination/auto/CURRENT.md",
+    "rule": "Read BELL.json first, then CURRENT.md. BELL.seq must equal CURRENT.md SEQ before anyone acts."
   }
 }

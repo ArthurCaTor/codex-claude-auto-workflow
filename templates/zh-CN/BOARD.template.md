@@ -1,31 +1,28 @@
 # Mode B Board
 
-STATUS: READY_FOR_CLAUDE
+STATUS: IDLE - reset pending; no Claude task is executable.
 
-## Current State
+## 当前状态
 
-- Project slug: `<projectSlug>`
-- Run: `mode-b-<projectSlug>-<runSlug>`
-- Active task: `<task-id>`
-- Bell holder: `claude`
-- Batch task: `1 / 1`
-- Report-only fix loop: `0 / 2`
-- Automation: `mode-b-<projectSlug>-<runSlug>-monitor`
-- Next expected actor: Claude Code
+- Protocol: `CURRENT_ONLY_KISS_V1`
+- Seq: `1`
+- Run: `<runId>`
+- Active task: none
+- Payload type: `RESET_PENDING`
+- Status: `IDLE`
+- Bell holder: `codex`
+- Current packet: `docs/operations/agent-coordination/auto/CURRENT.md`
+- Codex monitor automation: `<monitorId>` (`PAUSED`)
 
-## Stop Lines
+## Active Truth
 
-- schema or migration work
-- dependency installation
-- deployment
-- external API calls
-- production secrets
-- commit or push
-- owner-only decisions
-- Claude process control
+```text
+docs/operations/agent-coordination/auto/BELL.json
+docs/operations/agent-coordination/auto/CURRENT.md
+```
 
-## Bell Rule
+`BELL.json.seq` 必须等于 `CURRENT.md` 的 `SEQ`。
 
-- `holder = "claude"`：Claude Code 干活。
-- `holder = "codex"`：Codex review 或准备下一个有限任务。
-- `holder = "arthur"`：需要 owner 决策。
+`messages.ndjson`、旧 task card/report/review、terminal recap、timestamp、
+event id、file mtime 都只是 legacy/debug/audit context，不能决定当前 actor、
+当前 task 或 turn order。
